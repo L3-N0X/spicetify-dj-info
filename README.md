@@ -2,9 +2,8 @@
 
 Displays a few details like the key (Camelot system) of tracks in a playlist and in the now playing bar. It can be disabled in the menu on the top right.
 
-```diff
-- ! May cause issues with starRatings.js !
-```
+**May cause issues with starRatings.js!**
+
 
 ![Screenshot](screenshot.png)
 ![Screenshot](nowplaying.png)
@@ -43,5 +42,5 @@ spicetify apply
 Toggle the visibility of the stats in playlists or for now playing in the profile menu.
 
 
-## Credits
+## 🌐Credits
 Big thanks to [duffey](https://github.com/Tetrax-10) for the main code of displaying something in the playlist and the now playing bar!
