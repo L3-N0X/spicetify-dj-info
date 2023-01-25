@@ -1,0 +1,11 @@
+{
+  "name": "Spicetify DJ Infos",
+  "description": "Display stats to your tracks in any playlist or for the playing song!",
+  "preview": "preview.png",
+  "main": "djinfo.js",
+  "readme": "README.md",
+  "authors": [
+      { "name": "L3N0X", "url": "https://github.com/L3-N0X" }
+  ],
+  "tags": ["spicetify", "dj", "info", "stats", "song stats"]
+}
