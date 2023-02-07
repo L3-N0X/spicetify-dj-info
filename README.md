@@ -1,6 +1,7 @@
 # Spicetify DJ Info
 
 Displays a few details like the key (Camelot system) of tracks in a playlist and in the now playing bar. It can be disabled in the menu on the top right.
+The E means Energy and the value is how Energetic the Song is in a range from 0 to 100%
 
 **May cause issues with starRatings.js!**
 
