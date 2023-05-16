@@ -2,27 +2,28 @@
 
 Welcome to the Spicetify DJ Info Extension! This extension enhances your Spicetify experience by providing valuable song analysis data for each track, including Key (Camelot System), BPM, Energy, and Popularity. With this extension, you can gain deeper insights into your music library and discover songs perfectly fitting into your DJ set.
 
-## Features
+## ⭐Features
 
 - **Key (Camelot System):** Identify the key of each song in the Camelot system. The Camelot system simplifies harmonic mixing by categorizing keys into groups that are harmonically compatible. This enables smoother transitions between songs during DJ sets or when creating cohesive playlists.
-- **BPM (Beats Per Minute):** Get the tempo of each song, which indicates the speed or pace at which the music is played. BPM is useful for creating playlists with similar speed or for selecting songs for specific activities.
-- **Energy:** Explore the energy level of your songs. This metric represents the intensity and activity in a track, allowing you to find tracks with high energy for workouts or energetic playlists.
-- **Popularity:** Discover how popular your songs are by accessing their popularity ratings. This data can be helpful in understanding the overall reception and popularity of a track.
+- **BPM ♫ (Beats Per Minute):** Get the tempo of each song, which indicates the speed or pace at which the music is played. BPM is useful for creating playlists with similar speed or for selecting songs for specific activities.
+- **Energy E:** Explore the energy level of your songs. This metric represents the intensity and activity in a track, allowing you to find tracks with high energy for workouts or energetic playlists.
+- **Popularity ♥:** Discover how popular your songs are by accessing their popularity ratings. This data can be helpful in understanding the overall reception and popularity of a track.
+----
 
-<span style="color: #ff3030;">May cause issues with Star Ratings!</span>
+May cause issues with Star Ratings!
 
-
+----
 ![Screenshot](img/playlist.png)
 ![Screenshot](img/now-playing.png)
 
 ## 💻 Installation
 
 Copy `djinfo.js` into your [Spicetify](https://github.com/spicetify/spicetify-cli) extensions directory:
-| **Platform** | **Path**                                                                               |
-|------------|------------------------------------------------------------------------------------------|
-| **Linux**      | `~/.config/spicetify/Extensions` or `$XDG_CONFIG_HOME/.config/spicetify/Extensions/` |
-| **MacOS**      | `~/.config/spicetify/Extensions` or `$SPICETIFY_CONFIG/Extensions`                   |
-| **Windows**    | `%appdata%/spicetify/Extensions/`                                               |
+| **Platform** | **Path**                                                                             |
+| ------------ | ------------------------------------------------------------------------------------ |
+| **Linux**    | `~/.config/spicetify/Extensions` or `$XDG_CONFIG_HOME/.config/spicetify/Extensions/` |
+| **MacOS**    | `~/.config/spicetify/Extensions` or `$SPICETIFY_CONFIG/Extensions`                   |
+| **Windows**  | `%appdata%/spicetify/Extensions/`                                                    |
 
 After putting the extension file into the correct folder, run the following command to install the extension:
 ```
@@ -80,15 +81,15 @@ To toggle the visibility of DJ information, follow these steps:
 4. In the sub-menu click on the toggle switch to hide or show the DJ information for either playlists or now playing.
 5. Wait for the reload
 
-## 🌐Credits
+## 🌐 Credits
 
 Big thanks to [duffey](https://github.com/Tetrax-10) for the main code of displaying something in the playlist and the now playing bar!
 
-## Feedback and Contributions
+## 💬 Feedback and Contributions
 
 If you encounter any issues or have suggestions for improving this extension, feel free to open an issue in the [GitHub repository](https://github.com/L3-N0X/spicetify-dj-info). Contributions are also welcome! Fork the repository, make your changes, and submit a pull request with your improvements.
 
-## License
+## ⚖️ License
 
 This project is licensed under the [MIT License](LICENSE.md). Feel free to use, modify, and distribute the code as per the terms of this license.
 
