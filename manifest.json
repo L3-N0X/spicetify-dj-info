@@ -1,11 +1,20 @@
 {
-  "name": "Spicetify DJ Infos",
-  "description": "Display stats to your tracks in any playlist or for the playing song!",
-  "preview": "preview.png",
+  "name": "Spicetify DJ Info",
+  "description": "Display Key, BPM, Energy and Popularity for each track in any playlist and for the currently playing song!",
+  "preview": "img/preview.png",
   "main": "djinfo.js",
   "readme": "README.md",
   "authors": [
-      { "name": "L3N0X", "url": "https://github.com/L3-N0X" }
+    {
+      "name": "L3N0X",
+      "url": "https://github.com/L3-N0X"
+    }
   ],
-  "tags": ["spicetify", "dj", "info", "stats", "song stats"]
+  "tags": [
+    "spicetify",
+    "dj",
+    "info",
+    "bpm",
+    "key"
+  ]
 }
