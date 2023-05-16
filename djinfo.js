@@ -1,7 +1,7 @@
 // @ts-nocheck
 // NAME: DJ Info
 // AUTHOR: L3N0X
-// VERSION: 1.0.0
+// VERSION: 1.1.0
 // DESCRIPTION: BPM and Energy display for each song
 
 /// <reference path='../globals.d.ts' />
@@ -19,9 +19,9 @@
     let isPlaylistEnabled;
     let isNowPlayingEnabled;
 
-    const fiveColumnGridCss = "[index] 16px [first] 3fr [var1] 2fr [var2] 3fr [last] minmax(120px,1fr)"
-    const sixColumnGridCss = "[index] 16px [first] 5fr [var1] 3fr [var2] 2fr [var3] 3fr [last] minmax(120px,1fr)"
-    const sevenColumnGridCss = "[index] 16px [first] 5fr [var1] 3fr [var2] 2fr [var3] minmax(120px,1fr) [var3] 3fr [last] minmax(120px,1fr)"
+    const fiveColumnGridCss = "[index] 16px [first] 3fr [var1] 2fr [var2] 2fr [last] minmax(120px,1fr)"
+    const sixColumnGridCss = "[index] 16px [first] 5fr [var1] 3fr [var2] 2fr [var3] 2fr [last] minmax(120px,1fr)"
+    const sevenColumnGridCss = "[index] 16px [first] 5fr [var1] 3fr [var2] 2fr [var3] minmax(120px,1fr) [var4] 2fr [last] minmax(120px,1fr)"
 
     const waitForElement = (selector) => {
         return new Promise((resolve) => {
@@ -113,114 +113,142 @@
     menu.register();
 
     updateTracklist = async () => {
-        const tracklist_ = document.querySelector(".main-trackList-indexable")
-        if (!tracklist_ || !isPlaylistEnabled) return
-        const tracks = tracklist_.getElementsByClassName("main-trackList-trackListRow")
-
-        const tracklistHeader = document.querySelector(".main-trackList-trackListHeaderRow")
-        // No tracklist header on Artist page
-        if (tracklistHeader) {
-            let lastColumn = tracklistHeader.querySelector(".main-trackList-rowSectionEnd")
-            let colIndexInt = parseInt(lastColumn.getAttribute("aria-colindex"))
-
-            switch (colIndexInt) {
-                case 4:
-                    tracklistHeader.style["grid-template-columns"] = fiveColumnGridCss
-                    break
-                case 5:
-                    tracklistHeader.style["grid-template-columns"] = sixColumnGridCss
-                    break
-                case 6:
-                    tracklistHeader.style["grid-template-columns"] = sevenColumnGridCss
-                    break
-                default:
-                    break
+        console.log("updateTracklist ");
+        const tracklists = document.getElementsByClassName("main-trackList-indexable")
+        for (const tracklist_ of tracklists) {
+            if (!tracklist_ || !isPlaylistEnabled) {
+                console.log("no tracklist");
+                return
             }
-        }
-        for (const track of tracks) {
-            const heart = track.getElementsByClassName("main-addButton-button")[0]
-            const hasdjinfo = track.getElementsByClassName("djinfo").length > 0
-            const trackUri = getTracklistTrackUri(track)
-            const isTrack = trackUri.includes("track")
-
-            let ratingColumn = track.querySelector(".djInfoList")
-            if (!ratingColumn) {
-                // Add column for djInfos
-                let lastColumn = track.querySelector(".main-trackList-rowSectionEnd")
+            console.log("tracklist");
+            const tracklistHeader = tracklist_.querySelector(".main-trackList-trackListHeaderRow")
+            if (tracklistHeader && !tracklistHeader.querySelector(".djinfoheader")) {   // No tracklist header on Artist page
+                let lastColumn = tracklistHeader.querySelector(".main-trackList-rowSectionEnd")
                 let colIndexInt = parseInt(lastColumn.getAttribute("aria-colindex"))
-                lastColumn.setAttribute("aria-colindex", (colIndexInt + 1).toString())
-                ratingColumn = document.createElement("div")
-                ratingColumn.setAttribute("aria-colindex", colIndexInt.toString())
-                // ratingColumn.role = "gridcell"
-                ratingColumn.style.display = "flex"
-                ratingColumn.classList.add("main-trackList-rowSectionVariable")
-                ratingColumn.classList.add("djInfoList")
-                track.insertBefore(ratingColumn, lastColumn)
 
+                lastColumn.setAttribute("aria-colindex", (colIndexInt + 1).toString())
+                let headerColumn = document.createElement("div")
+                headerColumn.style.display = "flex"
+                headerColumn.classList.add("main-trackList-rowSectionVariable")
+                headerColumn.role = "columnheader"
+                tracklistHeader.insertBefore(headerColumn, lastColumn)
+                console.log("error");
                 switch (colIndexInt) {
                     case 4:
-                        track.style["grid-template-columns"] = fiveColumnGridCss
+                        tracklistHeader.style["grid-template-columns"] = fiveColumnGridCss
                         break
                     case 5:
-                        track.style["grid-template-columns"] = sixColumnGridCss
+                        tracklistHeader.style["grid-template-columns"] = sixColumnGridCss
                         break
                     case 6:
-                        track.style["grid-template-columns"] = sevenColumnGridCss
+                        tracklistHeader.style["grid-template-columns"] = sevenColumnGridCss
                         break
                     default:
                         break
                 }
 
-                if (!heart || !trackUri || hasdjinfo || !isTrack) continue
-                var text = document.createElement('p');
-                var uri = trackUri;
-                var uriFinal = uri.split(":")[2]
-                var res = await CosmosAsync.get('https://api.spotify.com/v1/audio-features/' + uriFinal);
-                var keyBetter = "XX"
-                switch (res.mode) {
-                    case 0: // minor
-                        switch (res.key) {
-                            case 0: keyBetter = "5A"; break;
-                            case 1: keyBetter = "12A"; break;
-                            case 2: keyBetter = "7A"; break;
-                            case 3: keyBetter = "2A"; break;
-                            case 4: keyBetter = "9A"; break;
-                            case 5: keyBetter = "4A"; break;
-                            case 6: keyBetter = "11A"; break;
-                            case 7: keyBetter = "6A"; break;
-                            case 8: keyBetter = "1A"; break;
-                            case 9: keyBetter = "8A"; break;
-                            case 10: keyBetter = "3A"; break;
-                            case 11: keyBetter = "10A"; break;
-                            default: break;
-                        } break;
-                    case 1: //major
-                        switch (res.key) {
-                            case 0: keyBetter = "8B"; break;
-                            case 1: keyBetter = "3B"; break;
-                            case 2: keyBetter = "10B"; break;
-                            case 3: keyBetter = "5B"; break;
-                            case 4: keyBetter = "12B"; break;
-                            case 5: keyBetter = "7B"; break;
-                            case 6: keyBetter = "2B"; break;
-                            case 7: keyBetter = "9B"; break;
-                            case 8: keyBetter = "4B"; break;
-                            case 9: keyBetter = "11B"; break;
-                            case 10: keyBetter = "6B"; break;
-                            case 11: keyBetter = "1B"; break;
-                            default: break;
-                        } break;
-                    default: break;
-                }
-
-                text.innerHTML = `KEY: ${keyBetter} | ${Math.round(res.tempo)} BPM | E: ${Math.round(100 * res.energy)}%`;
-                text.classList.add("djinfo-${k}")
-                text.classList.add("djinfo")
-                text.style.fontSize = "12px"
-                ratingColumn.appendChild(text)
+                var btn = document.createElement('button');
+                btn.classList.add("main-trackList-column")
+                btn.classList.add("main-trackList-sortable")
+                btn.classList.add("djinfoheader")
+                var title = document.createElement('span');
+                title.classList.add("TypeElement-mesto-type")
+                title.classList.add("standalone-ellipsis-one-line")
+                title.innerHTML = "DJ Info"
+                btn.appendChild(title)
+                headerColumn.appendChild(btn)
             }
 
-            if (!heart || !trackUri || hasdjinfo || !isTrack) continue
+
+            const tracks = tracklist_.getElementsByClassName("main-trackList-trackListRow")
+
+            for (const track of tracks) {
+                const heart = track.getElementsByClassName("main-addButton-button")[0]
+                const hasdjinfo = track.getElementsByClassName("djinfo").length > 0
+                const trackUri = getTracklistTrackUri(track)
+                const isTrack = trackUri.includes("track")
+
+                let ratingColumn = track.querySelector(".djInfoList")
+                if (!ratingColumn) {
+                    // Add column for djInfos
+                    let lastColumn = track.querySelector(".main-trackList-rowSectionEnd")
+                    let colIndexInt = parseInt(lastColumn.getAttribute("aria-colindex"))
+                    lastColumn.setAttribute("aria-colindex", (colIndexInt + 1).toString())
+                    ratingColumn = document.createElement("div")
+                    ratingColumn.setAttribute("aria-colindex", colIndexInt.toString())
+                    // ratingColumn.role = "gridcell"
+                    ratingColumn.style.display = "flex"
+                    ratingColumn.classList.add("main-trackList-rowSectionVariable")
+                    ratingColumn.classList.add("djInfoList")
+                    track.insertBefore(ratingColumn, lastColumn)
+
+                    switch (colIndexInt) {
+                        case 4:
+                            track.style["grid-template-columns"] = fiveColumnGridCss
+                            break
+                        case 5:
+                            track.style["grid-template-columns"] = sixColumnGridCss
+                            break
+                        case 6:
+                            track.style["grid-template-columns"] = sevenColumnGridCss
+                            break
+                        default:
+                            break
+                    }
+
+                    if (!heart || !trackUri || hasdjinfo || !isTrack) continue
+                    var text = document.createElement('p');
+                    var uri = trackUri;
+                    var uriFinal = uri.split(":")[2]
+                    var res = await CosmosAsync.get('https://api.spotify.com/v1/audio-features/' + uriFinal);
+                    var resTrack = await CosmosAsync.get('https://api.spotify.com/v1/tracks/' + uriFinal);
+                    console.log(res);
+                    var keyBetter = "XX"
+                    switch (res.mode) {
+                        case 0: // minor
+                            switch (res.key) {
+                                case 0: keyBetter = "5A"; break;
+                                case 1: keyBetter = "12A"; break;
+                                case 2: keyBetter = "7A"; break;
+                                case 3: keyBetter = "2A"; break;
+                                case 4: keyBetter = "9A"; break;
+                                case 5: keyBetter = "4A"; break;
+                                case 6: keyBetter = "11A"; break;
+                                case 7: keyBetter = "6A"; break;
+                                case 8: keyBetter = "1A"; break;
+                                case 9: keyBetter = "8A"; break;
+                                case 10: keyBetter = "3A"; break;
+                                case 11: keyBetter = "10A"; break;
+                                default: break;
+                            } break;
+                        case 1: //major
+                            switch (res.key) {
+                                case 0: keyBetter = "8B"; break;
+                                case 1: keyBetter = "3B"; break;
+                                case 2: keyBetter = "10B"; break;
+                                case 3: keyBetter = "5B"; break;
+                                case 4: keyBetter = "12B"; break;
+                                case 5: keyBetter = "7B"; break;
+                                case 6: keyBetter = "2B"; break;
+                                case 7: keyBetter = "9B"; break;
+                                case 8: keyBetter = "4B"; break;
+                                case 9: keyBetter = "11B"; break;
+                                case 10: keyBetter = "6B"; break;
+                                case 11: keyBetter = "1B"; break;
+                                default: break;
+                            } break;
+                        default: break;
+                    }
+
+                    text.classList.add("djinfo-${k}")
+                    text.innerHTML = `${keyBetter} | ${Math.round(res.tempo)} ♫ | E ${Math.round(100 * res.energy)} | ♥ ${resTrack.popularity}`;
+                    text.classList.add("djinfo")
+                    text.style.fontSize = "13px"
+                    ratingColumn.appendChild(text)
+                }
+
+                if (!heart || !trackUri || hasdjinfo || !isTrack) continue
+            }
         }
     }
 
@@ -239,6 +267,7 @@
         const uri = Spicetify.Player.data.track.uri;
         const uriFinal = uri.split(":")[2]
         const res = await CosmosAsync.get('https://api.spotify.com/v1/audio-features/' + uriFinal);
+        var resTrack = await CosmosAsync.get('https://api.spotify.com/v1/tracks/' + uriFinal);
         var keyBetter = "XX"
         switch (res.mode) {
             case 0: // minor
@@ -275,7 +304,8 @@
                 } break;
             default: break;
         }
-        nowPlayingWidgetdjInfoData.innerHTML = `KEY ${keyBetter}<br>${Math.round(res.tempo)} BPM<br>E ${Math.round(100 * res.energy)}%`;
+        nowPlayingWidgetdjInfoData.innerHTML = `${keyBetter}<br>${Math.round(res.tempo)} ♫<br>E ${Math.round(100 * res.energy)}<br>♥ ${resTrack.popularity}`;
+        nowPlayingWidgetdjInfoData.style.fontSize = "11px";
     }
 
     const tracklistObserver = new MutationObserver(() => {
@@ -307,8 +337,9 @@
             nowPlayingWidgetdjInfoData = document.createElement('p');
             nowPlayingWidgetdjInfoData.style.marginLeft = "4px"
             nowPlayingWidgetdjInfoData.style.marginRight = "4px"
-            nowPlayingWidgetdjInfoData.style.minWidth = "44px"
+            nowPlayingWidgetdjInfoData.style.minWidth = "34px"
             nowPlayingWidgetdjInfoData.style.fontSize = "11px"
+            nowPlayingWidgetdjInfoData.style.textAlign = "center"
             const trackInfo = await waitForElement(".main-nowPlayingWidget-nowPlaying .main-trackInfo-container")
             trackInfo.after(nowPlayingWidgetdjInfoData)
             updateNowPlayingWidget()
