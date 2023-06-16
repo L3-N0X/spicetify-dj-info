@@ -16,8 +16,13 @@
         return
     }
 
-    let isPlaylistEnabled;
-    let isNowPlayingEnabled;
+    let isPlaylistEnabled = true;
+    let isNowPlayingEnabled = true;
+
+    let isBPMEnabled = true;
+    let isKeyEnabled = true;
+    let isPopularityEnabled = true;
+    let isEnergyEnabled = true;
 
     const fiveColumnGridCss = "[index] 16px [first] 3fr [var1] 2fr [var2] 2fr [last] minmax(120px,1fr)"
     const sixColumnGridCss = "[index] 16px [first] 5fr [var1] 3fr [var2] 2fr [var3] 2fr [last] minmax(120px,1fr)"
@@ -83,8 +88,13 @@
     let updateTracklist = null
     let nowPlayingWidgetdjInfoData = null
 
-    isPlaylistEnabled = Spicetify.LocalStorage.get("dj-playlists-enabled") === "true" || Spicetify.LocalStorage.get("dj-playlists-enabled") === null;
-    isNowPlayingEnabled = Spicetify.LocalStorage.get("dj-nowplaying-enabled") === "true" || Spicetify.LocalStorage.get("dj-nowplaying-enabled") === null;
+    isPlaylistEnabled = Spicetify.LocalStorage.get("dj-playlists-enabled") == 1 || Spicetify.LocalStorage.get("dj-playlists-enabled") == null;
+    isNowPlayingEnabled = Spicetify.LocalStorage.get("dj-nowplaying-enabled") == 1 || Spicetify.LocalStorage.get("dj-nowplaying-enabled") == null;
+
+    isBPMEnabled = Spicetify.LocalStorage.get("dj-bpm-enabled") == 1 || Spicetify.LocalStorage.get("dj-bpm-enabled") == null;
+    isKeyEnabled = Spicetify.LocalStorage.get("dj-key-enabled") == 1 || Spicetify.LocalStorage.get("dj-key-enabled") == null;
+    isPopularityEnabled = Spicetify.LocalStorage.get("dj-popularity-enabled") == 1 || Spicetify.LocalStorage.get("dj-popularity-enabled") == null;
+    isEnergyEnabled = Spicetify.LocalStorage.get("dj-energy-enabled") == 1 || Spicetify.LocalStorage.get("dj-energy-enabled") == null;
 
     // Add menu item and menu click handler
     const enablePlaylist = new Spicetify.Menu.Item(
@@ -93,8 +103,7 @@
         (item) => {
             isPlaylistEnabled = !isPlaylistEnabled;
             item.setState(isPlaylistEnabled);
-            Spicetify.LocalStorage.set("dj-playlists-enabled", isPlaylistEnabled ? "true" : "false");
-            location.reload();
+            Spicetify.LocalStorage.set("dj-playlists-enabled", isPlaylistEnabled ? 1 : 0);
         }
     );
 
@@ -104,23 +113,71 @@
         (item) => {
             isNowPlayingEnabled = !isNowPlayingEnabled;
             item.setState(isNowPlayingEnabled);
-            Spicetify.LocalStorage.set("dj-nowplaying-enabled", isNowPlayingEnabled ? "true" : "false");
-            location.reload();
+            Spicetify.LocalStorage.set("dj-nowplaying-enabled", isNowPlayingEnabled ? 1 : 0);
         }
     );
 
-    const menu = new Spicetify.Menu.SubMenu("DJ Info", [enablePlaylist, enableNowPlaying]);
+    const enableBPM = new Spicetify.Menu.Item(
+        "Enable BPM",
+        isBPMEnabled,
+        (item) => {
+            isBPMEnabled = !isBPMEnabled;
+            item.setState(isBPMEnabled);
+            Spicetify.LocalStorage.set("dj-bpm-enabled", isBPMEnabled ? 1 : 0);
+        }
+    );
+
+    const enableKey = new Spicetify.Menu.Item(
+        "Enable Key",
+        isKeyEnabled,
+        (item) => {
+            isKeyEnabled = !isKeyEnabled;
+            item.setState(isKeyEnabled);
+            Spicetify.LocalStorage.set("dj-key-enabled", isKeyEnabled ? 1 : 0);
+        }
+    );
+
+    const enablePopularity = new Spicetify.Menu.Item(
+        "Enable Popularity",
+        isPopularityEnabled,
+        (item) => {
+            isPopularityEnabled = !isPopularityEnabled;
+            item.setState(isPopularityEnabled);
+            Spicetify.LocalStorage.set("dj-popularity-enabled", isPopularityEnabled ? 1 : 0);
+        }
+    );
+
+    const enableEnergy = new Spicetify.Menu.Item(
+        "Enable Energy",
+        isEnergyEnabled,
+        (item) => {
+            isEnergyEnabled = !isEnergyEnabled;
+            item.setState(isEnergyEnabled);
+            Spicetify.LocalStorage.set("dj-energy-enabled", isEnergyEnabled ? 1 : 0);
+        }
+    );
+
+    const reload = new Spicetify.Menu.Item(
+        //  a ascii symbol as icon for apply changes
+        "\u21BB  Apply Changes",
+        false,
+        (item) => {
+            window.location.reload();
+        }
+    );
+
+    const menu = new Spicetify.Menu.SubMenu("DJ Info", [enablePlaylist, enableNowPlaying, enableBPM, enableKey, enablePopularity, enableEnergy, reload]);
     menu.register();
 
     updateTracklist = async () => {
-        console.log("updateTracklist ");
+        // console.log("updateTracklist ");
         const tracklists = document.getElementsByClassName("main-trackList-indexable")
         for (const tracklist_ of tracklists) {
             if (!tracklist_ || !isPlaylistEnabled) {
-                console.log("no tracklist");
+                // console.log("no tracklist");
                 return
             }
-            console.log("tracklist");
+            // console.log("tracklist");
             const tracklistHeader = tracklist_.querySelector(".main-trackList-trackListHeaderRow")
             if (tracklistHeader && !tracklistHeader.querySelector(".djinfoheader")) {   // No tracklist header on Artist page
                 let lastColumn = tracklistHeader.querySelector(".main-trackList-rowSectionEnd")
@@ -132,7 +189,7 @@
                 headerColumn.classList.add("main-trackList-rowSectionVariable")
                 headerColumn.role = "columnheader"
                 tracklistHeader.insertBefore(headerColumn, lastColumn)
-                console.log("error");
+                // console.log("error");
                 switch (colIndexInt) {
                     case 4:
                         tracklistHeader.style["grid-template-columns"] = fiveColumnGridCss
@@ -202,7 +259,7 @@
                     var uriFinal = uri.split(":")[2]
                     var res = await CosmosAsync.get('https://api.spotify.com/v1/audio-features/' + uriFinal);
                     var resTrack = await CosmosAsync.get('https://api.spotify.com/v1/tracks/' + uriFinal);
-                    console.log(res);
+                    // console.log(res);
                     var keyBetter = "XX"
                     switch (res.mode) {
                         case 0: // minor
@@ -241,7 +298,14 @@
                     }
 
                     text.classList.add("djinfo-${k}")
-                    text.innerHTML = `${keyBetter} | ${Math.round(res.tempo)} ♫ | E ${Math.round(100 * res.energy)} | ♥ ${resTrack.popularity}`;
+                    display_text = ``;
+                    if (isKeyEnabled) display_text += `${keyBetter} | `;
+                    if (isBPMEnabled) display_text += `${Math.round(res.tempo)} ♫ | `;
+                    if (isEnergyEnabled) display_text += `E ${Math.round(100 * res.energy)} | `;
+                    if (isPopularityEnabled) display_text += `♥ ${resTrack.popularity}`;
+                    joiner = " | "
+                    if (display_text.endsWith(joiner)) display_text = display_text.substring(0, display_text.length - joiner.length);
+                    text.innerHTML = display_text;
                     text.classList.add("djinfo")
                     text.style.fontSize = "13px"
                     ratingColumn.appendChild(text)
@@ -304,7 +368,14 @@
                 } break;
             default: break;
         }
-        nowPlayingWidgetdjInfoData.innerHTML = `${keyBetter}<br>${Math.round(res.tempo)} ♫<br>E ${Math.round(100 * res.energy)}<br>♥ ${resTrack.popularity}`;
+        display_text = ``;
+        if (isKeyEnabled) display_text += `${keyBetter}<br>`;
+        if (isBPMEnabled) display_text += `${Math.round(res.tempo)} ♫<br>`;
+        if (isEnergyEnabled) display_text += `E ${Math.round(100 * res.energy)}<br>`;
+        if (isPopularityEnabled) display_text += `♥ ${resTrack.popularity}`;
+        joiner = "<br>"
+        if (display_text.endsWith(joiner)) display_text = display_text.substring(0, display_text.length - joiner.length);
+        nowPlayingWidgetdjInfoData.innerHTML = display_text;
         nowPlayingWidgetdjInfoData.style.fontSize = "11px";
     }
 
