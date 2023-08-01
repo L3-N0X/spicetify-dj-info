@@ -7,6 +7,7 @@
 /// <reference path='../globals.d.ts' />
 
 (async function djInfoList() {
+  // waiting while loading
   while (!Spicetify.showNotification) {
     await new Promise((resolve) => setTimeout(resolve, 500));
   }
@@ -16,14 +17,47 @@
     return;
   }
 
+  // Set deafult values to InfoDisplay
   let isPlaylistEnabled = true;
   let isNowPlayingEnabled = true;
-
   let isBPMEnabled = true;
   let isKeyEnabled = true;
   let isPopularityEnabled = true;
   let isEnergyEnabled = true;
+  let isDanceEnabled = false;
+  let isCamelotEnabled = true;
+  let isYearEnabled = false;
 
+  // Set default values to LocalStorage
+  if (Spicetify.LocalStorage.get("dj-playlists-enabled") == null) {
+    Spicetify.LocalStorage.set("dj-playlists-enabled", 1);
+  }
+  if (Spicetify.LocalStorage.get("dj-nowplaying-enabled") == null) {
+    Spicetify.LocalStorage.set("dj-nowplaying-enabled", 1);
+  }
+  if (Spicetify.LocalStorage.get("dj-bpm-enabled") == null) {
+    Spicetify.LocalStorage.set("dj-bpm-enabled", 1);
+  }
+  if (Spicetify.LocalStorage.get("dj-key-enabled") == null) {
+    Spicetify.LocalStorage.set("dj-key-enabled", 1);
+  }
+  if (Spicetify.LocalStorage.get("dj-popularity-enabled") == null) {
+    Spicetify.LocalStorage.set("dj-popularity-enabled", 1);
+  }
+  if (Spicetify.LocalStorage.get("dj-energy-enabled") == null) {
+    Spicetify.LocalStorage.set("dj-energy-enabled", 1);
+  }
+  if (Spicetify.LocalStorage.get("dj-dance-enabled") == null) {
+    Spicetify.LocalStorage.set("dj-dance-enabled", 0);
+  }
+  if (Spicetify.LocalStorage.get("dj-year-enabled") == null) {
+    Spicetify.LocalStorage.set("dj-year-enabled", 0);
+  }
+  if (Spicetify.LocalStorage.get("dj-camelot-enabled") == null) {
+    Spicetify.LocalStorage.set("dj-camelot-enabled", 1);
+  }
+
+  // initialize css grid changes
   const fiveColumnGridCss = "[index] 16px [first] 3fr [var1] 2fr [var2] 2fr [last] minmax(120px,1fr)";
   const sixColumnGridCss = "[index] 16px [first] 5fr [var1] 3fr [var2] 2fr [var3] 2fr [last] minmax(120px,1fr)";
   const sevenColumnGridCss =
@@ -47,6 +81,7 @@
     });
   };
 
+  // Get track uri from tracklist element
   function getTracklistTrackUri(tracklistElement) {
     let values = Object.values(tracklistElement);
     if (!values) return null;
@@ -58,6 +93,7 @@
     );
   }
 
+  // Get page type
   function getPageType() {
     const pathname = Spicetify.Platform.History.location.pathname;
     let matches = null;
@@ -81,25 +117,27 @@
 
   let oldTracklist = null;
   let tracklist = null;
-
   let oldNowPlayingWidget = null;
   let nowPlayingWidget = null;
-
   let updateNowPlayingWidget = null;
   let updateTracklist = null;
   let nowPlayingWidgetdjInfoData = null;
 
+  // Get LocalStorage values
   isPlaylistEnabled =
     Spicetify.LocalStorage.get("dj-playlists-enabled") == 1 || Spicetify.LocalStorage.get("dj-playlists-enabled") == null;
   isNowPlayingEnabled =
     Spicetify.LocalStorage.get("dj-nowplaying-enabled") == 1 || Spicetify.LocalStorage.get("dj-nowplaying-enabled") == null;
-
   isBPMEnabled = Spicetify.LocalStorage.get("dj-bpm-enabled") == 1 || Spicetify.LocalStorage.get("dj-bpm-enabled") == null;
   isKeyEnabled = Spicetify.LocalStorage.get("dj-key-enabled") == 1 || Spicetify.LocalStorage.get("dj-key-enabled") == null;
   isPopularityEnabled =
     Spicetify.LocalStorage.get("dj-popularity-enabled") == 1 || Spicetify.LocalStorage.get("dj-popularity-enabled") == null;
   isEnergyEnabled =
     Spicetify.LocalStorage.get("dj-energy-enabled") == 1 || Spicetify.LocalStorage.get("dj-energy-enabled") == null;
+  isDanceEnabled = Spicetify.LocalStorage.get("dj-dance-enabled") == 1 || Spicetify.LocalStorage.get("dj-dance-enabled") == null;
+  isCamelotEnabled =
+    Spicetify.LocalStorage.get("dj-camelot-enabled") == 1 || Spicetify.LocalStorage.get("dj-camelot-enabled") == null;
+  isYearEnabled = Spicetify.LocalStorage.get("dj-year-enabled") == 1 || Spicetify.LocalStorage.get("dj-year-enabled") == null;
 
   // Add menu item and menu click handler
   const enablePlaylist = new Spicetify.Menu.Item("Enable in Playlists", isPlaylistEnabled, (item) => {
@@ -138,32 +176,169 @@
     Spicetify.LocalStorage.set("dj-energy-enabled", isEnergyEnabled ? 1 : 0);
   });
 
-  const reload = new Spicetify.Menu.Item(
-    //  a ascii symbol as icon for apply changes
-    "\u21BB  Apply Changes",
-    false,
-    (item) => {
-      window.location.reload();
-    }
-  );
+  const enableDance = new Spicetify.Menu.Item("Enable Danceability", isDanceEnabled, (item) => {
+    isDanceEnabled = !isDanceEnabled;
+    item.setState(isDanceEnabled);
+    Spicetify.LocalStorage.set("dj-dance-enabled", isDanceEnabled ? 1 : 0);
+  });
 
+  const enableYear = new Spicetify.Menu.Item("Enable Year", isYearEnabled, (item) => {
+    isYearEnabled = !isYearEnabled;
+    item.setState(isYearEnabled);
+    Spicetify.LocalStorage.set("dj-year-enabled", isYearEnabled ? 1 : 0);
+  });
+
+  const enableCamelot = new Spicetify.Menu.Item("Use Camelot", isCamelotEnabled, (item) => {
+    isCamelotEnabled = !isCamelotEnabled;
+    item.setState(isCamelotEnabled);
+    Spicetify.LocalStorage.set("dj-camelot-enabled", isCamelotEnabled ? 1 : 0);
+  });
+
+  const reload = new Spicetify.Menu.Item("⨠ Apply Changes", false, (item) => {
+    window.location.reload();
+  });
+  // create Submenu
   const menu = new Spicetify.Menu.SubMenu("DJ Info", [
     enablePlaylist,
     enableNowPlaying,
-    enableBPM,
     enableKey,
-    enablePopularity,
+    enableCamelot,
+    enableBPM,
     enableEnergy,
+    enableDance,
+    enablePopularity,
+    enableYear,
     reload,
   ]);
   menu.register();
 
+  // Get the Key in the right notation from /audiofeatures response
+  getKeyNotations = (res) => {
+    var keyInCamelot = "XX";
+    var keyInKey = "XX";
+    switch (res.mode) {
+      case 0: // minor
+        switch (res.key) {
+          case 0:
+            keyInCamelot = "5A";
+            keyInKey = "Cm";
+            break;
+          case 1:
+            keyInCamelot = "12A";
+            keyInKey = "Dbm";
+            break;
+          case 2:
+            keyInCamelot = "7A";
+            keyInKey = "Dm";
+            break;
+          case 3:
+            keyInCamelot = "2A";
+            keyInKey = "Ebm";
+            break;
+          case 4:
+            keyInCamelot = "9A";
+            keyInKey = "Em";
+            break;
+          case 5:
+            keyInCamelot = "4A";
+            keyInKey = "Fm";
+            break;
+          case 6:
+            keyInCamelot = "11A";
+            keyInKey = "F♯m";
+            break;
+          case 7:
+            keyInCamelot = "6A";
+            keyInKey = "Gm";
+            break;
+          case 8:
+            keyInCamelot = "1A";
+            keyInKey = "Abm";
+            break;
+          case 9:
+            keyInCamelot = "8A";
+            keyInKey = "Am";
+            break;
+          case 10:
+            keyInCamelot = "3A";
+            keyInKey = "Bbm";
+            break;
+          case 11:
+            keyInCamelot = "10A";
+            keyInKey = "Bm";
+            break;
+          default:
+            break;
+        }
+        break;
+      case 1: //major
+        switch (res.key) {
+          case 0:
+            keyInCamelot = "8B";
+            keyInKey = "C";
+            break;
+          case 1:
+            keyInCamelot = "3B";
+            keyInKey = "Db";
+            break;
+          case 2:
+            keyInCamelot = "10B";
+            keyInKey = "D";
+            break;
+          case 3:
+            keyInCamelot = "5B";
+            keyInKey = "Eb";
+            break;
+          case 4:
+            keyInCamelot = "12B";
+            keyInKey = "E";
+            break;
+          case 5:
+            keyInCamelot = "7B";
+            keyInKey = "F";
+            break;
+          case 6:
+            keyInCamelot = "2B";
+            keyInKey = "F♯";
+            break;
+          case 7:
+            keyInCamelot = "9B";
+            keyInKey = "G";
+            break;
+          case 8:
+            keyInCamelot = "4B";
+            keyInKey = "Ab";
+            break;
+          case 9:
+            keyInCamelot = "11B";
+            keyInKey = "A";
+            break;
+          case 10:
+            keyInCamelot = "6B";
+            keyInKey = "Bb";
+            break;
+          case 11:
+            keyInCamelot = "1B";
+            keyInKey = "B";
+            break;
+          default:
+            break;
+        }
+        break;
+      default:
+        break;
+    }
+    if (isCamelotEnabled) return keyInCamelot;
+    return keyInKey;
+  };
+
+  // update Tracklist and insert DJ Info
   updateTracklist = async () => {
     if (!isPlaylistEnabled) return;
     const tracklists = document.getElementsByClassName("main-trackList-indexable");
     for (const tracklist_ of tracklists) {
       if (!tracklist_) continue;
-
+      // Adding DJ Info Column Header
       const tracklistHeader = tracklist_.querySelector(".main-trackList-trackListHeaderRow");
       if (tracklistHeader && !tracklistHeader.querySelector(".djinfoheader")) {
         // No tracklist header on Artist page
@@ -210,19 +385,19 @@
         const trackUri = getTracklistTrackUri(track);
         const isTrack = trackUri.includes("track");
 
-        let ratingColumn = track.querySelector(".djInfoList");
-        if (!ratingColumn) {
+        let djInfoColumn = track.querySelector(".djInfoList");
+        if (!djInfoColumn) {
           // Add column for djInfos
           let lastColumn = track.querySelector(".main-trackList-rowSectionEnd");
           let colIndexInt = parseInt(lastColumn.getAttribute("aria-colindex"));
           lastColumn.setAttribute("aria-colindex", (colIndexInt + 1).toString());
-          ratingColumn = document.createElement("div");
-          ratingColumn.setAttribute("aria-colindex", colIndexInt.toString());
-          // ratingColumn.role = "gridcell"
-          ratingColumn.style.display = "flex";
-          ratingColumn.classList.add("main-trackList-rowSectionVariable");
-          ratingColumn.classList.add("djInfoList");
-          track.insertBefore(ratingColumn, lastColumn);
+          djInfoColumn = document.createElement("div");
+          djInfoColumn.setAttribute("aria-colindex", colIndexInt.toString());
+          // djInfoColumn.role = "gridcell"
+          djInfoColumn.style.display = "flex";
+          djInfoColumn.classList.add("main-trackList-rowSectionVariable");
+          djInfoColumn.classList.add("djInfoList");
+          track.insertBefore(djInfoColumn, lastColumn);
 
           switch (colIndexInt) {
             case 4:
@@ -239,240 +414,72 @@
           }
 
           if (!heart || !trackUri || hasdjinfo || !isTrack) continue;
+          // create the element for the djInfo
           var text = document.createElement("p");
           var uri = trackUri;
           var uriFinal = uri.split(":")[2];
           var res = await CosmosAsync.get("https://api.spotify.com/v1/audio-features/" + uriFinal);
           var resTrack = await CosmosAsync.get("https://api.spotify.com/v1/tracks/" + uriFinal);
-          var keyBetter = "XX";
-          switch (res.mode) {
-            case 0: // minor
-              switch (res.key) {
-                case 0:
-                  keyBetter = "5A";
-                  break;
-                case 1:
-                  keyBetter = "12A";
-                  break;
-                case 2:
-                  keyBetter = "7A";
-                  break;
-                case 3:
-                  keyBetter = "2A";
-                  break;
-                case 4:
-                  keyBetter = "9A";
-                  break;
-                case 5:
-                  keyBetter = "4A";
-                  break;
-                case 6:
-                  keyBetter = "11A";
-                  break;
-                case 7:
-                  keyBetter = "6A";
-                  break;
-                case 8:
-                  keyBetter = "1A";
-                  break;
-                case 9:
-                  keyBetter = "8A";
-                  break;
-                case 10:
-                  keyBetter = "3A";
-                  break;
-                case 11:
-                  keyBetter = "10A";
-                  break;
-                default:
-                  break;
-              }
-              break;
-            case 1: //major
-              switch (res.key) {
-                case 0:
-                  keyBetter = "8B";
-                  break;
-                case 1:
-                  keyBetter = "3B";
-                  break;
-                case 2:
-                  keyBetter = "10B";
-                  break;
-                case 3:
-                  keyBetter = "5B";
-                  break;
-                case 4:
-                  keyBetter = "12B";
-                  break;
-                case 5:
-                  keyBetter = "7B";
-                  break;
-                case 6:
-                  keyBetter = "2B";
-                  break;
-                case 7:
-                  keyBetter = "9B";
-                  break;
-                case 8:
-                  keyBetter = "4B";
-                  break;
-                case 9:
-                  keyBetter = "11B";
-                  break;
-                case 10:
-                  keyBetter = "6B";
-                  break;
-                case 11:
-                  keyBetter = "1B";
-                  break;
-                default:
-                  break;
-              }
-              break;
-            default:
-              break;
-          }
 
+          var key = getKeyNotations(res);
+
+          // generate Display Text
           text.classList.add("djinfo-${k}");
-          display_text = ``;
-          if (isKeyEnabled) display_text += `${keyBetter} | `;
-          if (isBPMEnabled) display_text += `${Math.round(res.tempo)} ♫ | `;
-          if (isEnergyEnabled) display_text += `E ${Math.round(100 * res.energy)} | `;
-          if (isPopularityEnabled) display_text += `♥ ${resTrack.popularity}`;
-          joiner = " | ";
-          if (display_text.endsWith(joiner)) display_text = display_text.substring(0, display_text.length - joiner.length);
+          display_text = [];
+          if (isKeyEnabled) display_text.push(`${key}`);
+          if (isBPMEnabled) display_text.push(`${Math.round(res.tempo)} ♫`);
+          if (isEnergyEnabled) display_text.push(`E ${Math.round(100 * res.energy)}`);
+          if (isDanceEnabled) display_text.push(`D ${Math.round(100 * res.danceability)}`);
+          if (isPopularityEnabled) display_text.push(`♥ ${resTrack.popularity}`);
+          if (isYearEnabled) display_text.push(`${resTrack.album.release_date.split("-")[0]}`);
+          display_text = display_text.join(" | ");
           text.innerHTML = display_text;
           text.classList.add("djinfo");
           text.style.fontSize = "13px";
-          ratingColumn.appendChild(text);
+          djInfoColumn.appendChild(text);
         }
 
         if (!heart || !trackUri || hasdjinfo || !isTrack) continue;
       }
     }
   };
-
+  // Add DJ Info to Now Playing
   updateNowPlayingWidget = async () => {
     if (!nowPlayingWidgetdjInfoData || !isNowPlayingEnabled) return;
-
     const getTrackUri = () => {
       return Spicetify.Player.data.track.uri;
     };
+    // Get the current Track
     const trackUri = getTrackUri();
     const isTrack = trackUri.includes("track");
 
     nowPlayingWidgetdjInfoData.style.display = isTrack ? "flex" : "none";
 
+    // get the Infos from requests, generating a Display Text
     var request = new XMLHttpRequest();
     const uri = Spicetify.Player.data.track.uri;
     const uriFinal = uri.split(":")[2];
     const res = await CosmosAsync.get("https://api.spotify.com/v1/audio-features/" + uriFinal);
     var resTrack = await CosmosAsync.get("https://api.spotify.com/v1/tracks/" + uriFinal);
-    var keyBetter = "XX";
-    switch (res.mode) {
-      case 0: // minor
-        switch (res.key) {
-          case 0:
-            keyBetter = "5A";
-            break;
-          case 1:
-            keyBetter = "12A";
-            break;
-          case 2:
-            keyBetter = "7A";
-            break;
-          case 3:
-            keyBetter = "2A";
-            break;
-          case 4:
-            keyBetter = "9A";
-            break;
-          case 5:
-            keyBetter = "4A";
-            break;
-          case 6:
-            keyBetter = "11A";
-            break;
-          case 7:
-            keyBetter = "6A";
-            break;
-          case 8:
-            keyBetter = "1A";
-            break;
-          case 9:
-            keyBetter = "8A";
-            break;
-          case 10:
-            keyBetter = "3A";
-            break;
-          case 11:
-            keyBetter = "10A";
-            break;
-          default:
-            break;
-        }
-        break;
-      case 1: //major
-        switch (res.key) {
-          case 0:
-            keyBetter = "8B";
-            break;
-          case 1:
-            keyBetter = "3B";
-            break;
-          case 2:
-            keyBetter = "10B";
-            break;
-          case 3:
-            keyBetter = "5B";
-            break;
-          case 4:
-            keyBetter = "12B";
-            break;
-          case 5:
-            keyBetter = "7B";
-            break;
-          case 6:
-            keyBetter = "2B";
-            break;
-          case 7:
-            keyBetter = "9B";
-            break;
-          case 8:
-            keyBetter = "4B";
-            break;
-          case 9:
-            keyBetter = "11B";
-            break;
-          case 10:
-            keyBetter = "6B";
-            break;
-          case 11:
-            keyBetter = "1B";
-            break;
-          default:
-            break;
-        }
-        break;
-      default:
-        break;
-    }
-    display_text = ``;
-    if (isKeyEnabled) display_text += `${keyBetter}<br>`;
-    if (isBPMEnabled) display_text += `${Math.round(res.tempo)} ♫<br>`;
-    if (isEnergyEnabled) display_text += `E ${Math.round(100 * res.energy)}<br>`;
-    if (isPopularityEnabled) display_text += `♥ ${resTrack.popularity}`;
-    joiner = "<br>";
-    if (display_text.endsWith(joiner)) display_text = display_text.substring(0, display_text.length - joiner.length);
+    var key = getKeyNotations(res);
+    display_text = [];
+    if (isKeyEnabled) display_text.push(`${key}`);
+    if (isBPMEnabled) display_text.push(`${Math.round(res.tempo)} ♫`);
+    if (isEnergyEnabled) display_text.push(`E ${Math.round(100 * res.energy)}`);
+    if (isDanceEnabled) display_text.push(`D ${Math.round(100 * res.danceability)}`);
+    if (isPopularityEnabled) display_text.push(`♥ ${resTrack.popularity}`);
+    if (isYearEnabled) display_text.push(`${resTrack.album.release_date.split("-")[0]}`);
+    display_text = display_text.join("<br>");
     nowPlayingWidgetdjInfoData.innerHTML = display_text;
     nowPlayingWidgetdjInfoData.style.fontSize = "11px";
   };
 
+  // Observe changes in the DOM and update the tracklist
   const tracklistObserver = new MutationObserver(() => {
     updateTracklist();
   });
 
+  // Observe changes in the DOM and update the now playing widget
   Spicetify.Player.addEventListener("songchange", () => {
     updateNowPlayingWidget();
   });
