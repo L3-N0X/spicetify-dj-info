@@ -4,7 +4,7 @@ Welcome to the Spicetify DJ Info Extension! This extension enhances your Spiceti
 
 ## ⭐Features
 
-- **Key:** Identify the key of each song in the Camelot system. The Camelot system simplifies harmonic mixing by categorizing keys into groups that are harmonically compatible. This enables smoother transitions between songs during DJ sets or when creating cohesive playlists. Available in Camelot System and standard notation.
+- **Key:** Identify the key of each song in either the standard notation (Dbm) or the Camelot system (3B). The Camelot system simplifies harmonic mixing by categorizing keys into groups that are harmonically compatible. This enables smoother transitions between songs during DJ sets or when creating cohesive playlists.
 - **BPM ♫ (Beats Per Minute):** Get the tempo of each song, which indicates the speed or pace at which the music is played. BPM is useful for creating playlists with similar speed or for selecting songs for specific activities.
 - **Energy E:** Explore the energy level of your songs. This metric represents the intensity and activity in a track, allowing you to find tracks with high energy for workouts or energetic playlists.
 - **Danceability D:** Explore the danceability level of your songs. This metric represents how suitable a track is for dancing based on a combination of musical elements including tempo, rhythm stability, beat strength, and overall regularity. This metric is useful for creating playlists with songs that are easy to dance to.
@@ -82,7 +82,6 @@ To toggle the visibility of DJ information, follow these steps:
 3. In the menu, find the option 'DJ Info'
 4. In the sub-menu click on the toggle switch to hide or show whatever you want
 5. Click on Apply Changes to make your settings visible
-
 
 ## 🌐 Credits
 
