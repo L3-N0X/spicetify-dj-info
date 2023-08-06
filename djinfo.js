@@ -84,7 +84,10 @@
   // Get track uri from tracklist element
   function getTracklistTrackUri(tracklistElement) {
     let values = Object.values(tracklistElement);
-    if (!values) return null;
+    if (!values) {
+      console.log("Error: Could not get tracklist element");
+      return null;
+    }
     return (
       values[0]?.pendingProps?.children[0]?.props?.children?.props?.uri ||
       values[0]?.pendingProps?.children[0]?.props?.children?.props?.children?.props?.uri ||
@@ -380,7 +383,6 @@
       const tracks = tracklist_.getElementsByClassName("main-trackList-trackListRow");
 
       for (const track of tracks) {
-        const heart = track.getElementsByClassName("main-addButton-button")[0];
         const hasdjinfo = track.getElementsByClassName("djinfo").length > 0;
         const trackUri = getTracklistTrackUri(track);
         const isTrack = trackUri.includes("track");
@@ -413,7 +415,7 @@
               break;
           }
 
-          if (!heart || !trackUri || hasdjinfo || !isTrack) continue;
+          if (!trackUri || hasdjinfo || !isTrack) continue;
           // create the element for the djInfo
           var text = document.createElement("p");
           var uri = trackUri;
@@ -439,7 +441,7 @@
           djInfoColumn.appendChild(text);
         }
 
-        if (!heart || !trackUri || hasdjinfo || !isTrack) continue;
+        if (!trackUri || hasdjinfo || !isTrack) continue;
       }
     }
   };
