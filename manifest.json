@@ -1,6 +1,6 @@
 {
   "name": "Spicetify DJ Info",
-  "description": "Display Key, BPM, Energy and Popularity for each track in any playlist and for the currently playing song!",
+  "description": "Show Key, BPM, Energy, Popularity, Danceability and Year for each track!",
   "preview": "img/preview.png",
   "main": "djinfo.js",
   "readme": "README.md",
