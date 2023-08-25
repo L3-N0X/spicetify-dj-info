@@ -20,6 +20,7 @@
   // Set deafult values to InfoDisplay
   let isPlaylistEnabled = true;
   let isNowPlayingEnabled = true;
+  let isLeftPlayingEnabled = false;
   let isBPMEnabled = true;
   let isKeyEnabled = true;
   let isPopularityEnabled = true;
@@ -34,6 +35,9 @@
   }
   if (Spicetify.LocalStorage.get("dj-nowplaying-enabled") == null) {
     Spicetify.LocalStorage.set("dj-nowplaying-enabled", 1);
+  }
+  if (Spicetify.LocalStorage.get("dj-left-playing-enabled") == null) {
+    Spicetify.LocalStorage.set("dj-left-playing-enabled", 0);
   }
   if (Spicetify.LocalStorage.get("dj-bpm-enabled") == null) {
     Spicetify.LocalStorage.set("dj-bpm-enabled", 1);
@@ -131,6 +135,8 @@
     Spicetify.LocalStorage.get("dj-playlists-enabled") == 1 || Spicetify.LocalStorage.get("dj-playlists-enabled") == null;
   isNowPlayingEnabled =
     Spicetify.LocalStorage.get("dj-nowplaying-enabled") == 1 || Spicetify.LocalStorage.get("dj-nowplaying-enabled") == null;
+  isLeftPlayingEnabled =
+    Spicetify.LocalStorage.get("dj-left-playing-enabled") == 1 || Spicetify.LocalStorage.get("dj-left-playing-enabled") == null;
   isBPMEnabled = Spicetify.LocalStorage.get("dj-bpm-enabled") == 1 || Spicetify.LocalStorage.get("dj-bpm-enabled") == null;
   isKeyEnabled = Spicetify.LocalStorage.get("dj-key-enabled") == 1 || Spicetify.LocalStorage.get("dj-key-enabled") == null;
   isPopularityEnabled =
@@ -155,10 +161,10 @@
     Spicetify.LocalStorage.set("dj-nowplaying-enabled", isNowPlayingEnabled ? 1 : 0);
   });
 
-  const enableBPM = new Spicetify.Menu.Item("Enable BPM", isBPMEnabled, (item) => {
-    isBPMEnabled = !isBPMEnabled;
-    item.setState(isBPMEnabled);
-    Spicetify.LocalStorage.set("dj-bpm-enabled", isBPMEnabled ? 1 : 0);
+  const enableLeftPlaying = new Spicetify.Menu.Item("Use Left side (Now Playing)", isLeftPlayingEnabled, (item) => {
+    isLeftPlayingEnabled = !isLeftPlayingEnabled;
+    item.setState(isLeftPlayingEnabled);
+    Spicetify.LocalStorage.set("dj-left-playing-enabled", isLeftPlayingEnabled ? 1 : 0);
   });
 
   const enableKey = new Spicetify.Menu.Item("Enable Key", isKeyEnabled, (item) => {
@@ -167,10 +173,16 @@
     Spicetify.LocalStorage.set("dj-key-enabled", isKeyEnabled ? 1 : 0);
   });
 
-  const enablePopularity = new Spicetify.Menu.Item("Enable Popularity", isPopularityEnabled, (item) => {
-    isPopularityEnabled = !isPopularityEnabled;
-    item.setState(isPopularityEnabled);
-    Spicetify.LocalStorage.set("dj-popularity-enabled", isPopularityEnabled ? 1 : 0);
+  const enableCamelot = new Spicetify.Menu.Item("Enable Camelot", isCamelotEnabled, (item) => {
+    isCamelotEnabled = !isCamelotEnabled;
+    item.setState(isCamelotEnabled);
+    Spicetify.LocalStorage.set("dj-camelot-enabled", isCamelotEnabled ? 1 : 0);
+  });
+
+  const enableBPM = new Spicetify.Menu.Item("Enable BPM", isBPMEnabled, (item) => {
+    isBPMEnabled = !isBPMEnabled;
+    item.setState(isBPMEnabled);
+    Spicetify.LocalStorage.set("dj-bpm-enabled", isBPMEnabled ? 1 : 0);
   });
 
   const enableEnergy = new Spicetify.Menu.Item("Enable Energy", isEnergyEnabled, (item) => {
@@ -185,16 +197,16 @@
     Spicetify.LocalStorage.set("dj-dance-enabled", isDanceEnabled ? 1 : 0);
   });
 
+  const enablePopularity = new Spicetify.Menu.Item("Enable Popularity", isPopularityEnabled, (item) => {
+    isPopularityEnabled = !isPopularityEnabled;
+    item.setState(isPopularityEnabled);
+    Spicetify.LocalStorage.set("dj-popularity-enabled", isPopularityEnabled ? 1 : 0);
+  });
+
   const enableYear = new Spicetify.Menu.Item("Enable Year", isYearEnabled, (item) => {
     isYearEnabled = !isYearEnabled;
     item.setState(isYearEnabled);
     Spicetify.LocalStorage.set("dj-year-enabled", isYearEnabled ? 1 : 0);
-  });
-
-  const enableCamelot = new Spicetify.Menu.Item("Use Camelot", isCamelotEnabled, (item) => {
-    isCamelotEnabled = !isCamelotEnabled;
-    item.setState(isCamelotEnabled);
-    Spicetify.LocalStorage.set("dj-camelot-enabled", isCamelotEnabled ? 1 : 0);
   });
 
   const reload = new Spicetify.Menu.Item("⨠ Apply Changes", false, (item) => {
@@ -204,6 +216,7 @@
   const menu = new Spicetify.Menu.SubMenu("DJ Info", [
     enablePlaylist,
     enableNowPlaying,
+    enableLeftPlaying,
     enableKey,
     enableCamelot,
     enableBPM,
@@ -331,6 +344,7 @@
       default:
         break;
     }
+    if (isCamelotEnabled && isKeyEnabled) return `${keyInKey} (${keyInCamelot})`;
     if (isCamelotEnabled) return keyInCamelot;
     return keyInKey;
   };
@@ -428,7 +442,7 @@
           // generate Display Text
           text.classList.add("djinfo-${k}");
           display_text = [];
-          if (isKeyEnabled) display_text.push(`${key}`);
+          if (isKeyEnabled || isCamelotEnabled) display_text.push(`${key}`);
           if (isBPMEnabled) display_text.push(`${Math.round(res.tempo)} ♫`);
           if (isEnergyEnabled) display_text.push(`E ${Math.round(100 * res.energy)}`);
           if (isDanceEnabled) display_text.push(`D ${Math.round(100 * res.danceability)}`);
@@ -465,13 +479,14 @@
     var resTrack = await CosmosAsync.get("https://api.spotify.com/v1/tracks/" + uriFinal);
     var key = getKeyNotations(res);
     display_text = [];
-    if (isKeyEnabled) display_text.push(`${key}`);
+    if (isKeyEnabled || isCamelotEnabled) display_text.push(`${key}`);
     if (isBPMEnabled) display_text.push(`${Math.round(res.tempo)} ♫`);
     if (isEnergyEnabled) display_text.push(`E ${Math.round(100 * res.energy)}`);
     if (isDanceEnabled) display_text.push(`D ${Math.round(100 * res.danceability)}`);
     if (isPopularityEnabled) display_text.push(`♥ ${resTrack.popularity}`);
     if (isYearEnabled) display_text.push(`${resTrack.album.release_date.split("-")[0]}`);
     display_text = display_text.join("<br>");
+
     nowPlayingWidgetdjInfoData.innerHTML = display_text;
     nowPlayingWidgetdjInfoData.style.fontSize = "11px";
   };
@@ -511,7 +526,11 @@
       nowPlayingWidgetdjInfoData.style.fontSize = "11px";
       nowPlayingWidgetdjInfoData.style.textAlign = "center";
       const trackInfo = await waitForElement(".main-nowPlayingWidget-nowPlaying .main-trackInfo-container");
-      trackInfo.after(nowPlayingWidgetdjInfoData);
+      if (isLeftPlayingEnabled) {
+        nowPlayingWidget.insertBefore(nowPlayingWidgetdjInfoData, trackInfo);
+      } else {
+        trackInfo.after(nowPlayingWidgetdjInfoData);
+      }
       updateNowPlayingWidget();
     }
   };
