@@ -6,6 +6,8 @@
 
 /// <reference path='../globals.d.ts' />
 
+import { SettingsSection } from "spcr-settings";
+
 (async function djInfoList() {
   // waiting while loading
   while (!Spicetify.showNotification) {
@@ -16,6 +18,22 @@
     setTimeout(djInfoList, 300);
     return;
   }
+
+  async function setupSettings() {
+    const settings = new SettingsSection("DJ Info", "djinfo");
+
+    settings.addToggle("enable-bpm", "Selected playlist background color", false);
+
+    settings.addButton("apply-changes", "Apply all changes now", "Apply", () => {
+      // const styles = generateStyles(settings.getFieldValue("selected-bgcolor"));
+      // injectStyles(styles);
+      Spicetify.showNotification("Changes applied!");
+    });
+
+    await settings.pushSettings();
+    return settings;
+  }
+  const settings = await setupSettings();
 
   // Set deafult values to InfoDisplay
   let isPlaylistEnabled = true;
@@ -229,113 +247,113 @@
   menu.register();
 
   // Get the Key in the right notation from /audiofeatures response
-  getKeyNotations = (res) => {
+  getKeyInNotation = (mode, key) => {
     var keyInCamelot = "XX";
-    var keyInKey = "XX";
-    switch (res.mode) {
+    var keyInStandard = "XX";
+    switch (mode) {
       case 0: // minor
-        switch (res.key) {
+        switch (key) {
           case 0:
             keyInCamelot = "5A";
-            keyInKey = "Cm";
+            keyInStandard = "Cm";
             break;
           case 1:
             keyInCamelot = "12A";
-            keyInKey = "Dbm";
+            keyInStandard = "Dbm";
             break;
           case 2:
             keyInCamelot = "7A";
-            keyInKey = "Dm";
+            keyInStandard = "Dm";
             break;
           case 3:
             keyInCamelot = "2A";
-            keyInKey = "Ebm";
+            keyInStandard = "Ebm";
             break;
           case 4:
             keyInCamelot = "9A";
-            keyInKey = "Em";
+            keyInStandard = "Em";
             break;
           case 5:
             keyInCamelot = "4A";
-            keyInKey = "Fm";
+            keyInStandard = "Fm";
             break;
           case 6:
             keyInCamelot = "11A";
-            keyInKey = "F♯m";
+            keyInStandard = "F♯m";
             break;
           case 7:
             keyInCamelot = "6A";
-            keyInKey = "Gm";
+            keyInStandard = "Gm";
             break;
           case 8:
             keyInCamelot = "1A";
-            keyInKey = "Abm";
+            keyInStandard = "Abm";
             break;
           case 9:
             keyInCamelot = "8A";
-            keyInKey = "Am";
+            keyInStandard = "Am";
             break;
           case 10:
             keyInCamelot = "3A";
-            keyInKey = "Bbm";
+            keyInStandard = "Bbm";
             break;
           case 11:
             keyInCamelot = "10A";
-            keyInKey = "Bm";
+            keyInStandard = "Bm";
             break;
           default:
             break;
         }
         break;
       case 1: //major
-        switch (res.key) {
+        switch (key) {
           case 0:
             keyInCamelot = "8B";
-            keyInKey = "C";
+            keyInStandard = "C";
             break;
           case 1:
             keyInCamelot = "3B";
-            keyInKey = "Db";
+            keyInStandard = "Db";
             break;
           case 2:
             keyInCamelot = "10B";
-            keyInKey = "D";
+            keyInStandard = "D";
             break;
           case 3:
             keyInCamelot = "5B";
-            keyInKey = "Eb";
+            keyInStandard = "Eb";
             break;
           case 4:
             keyInCamelot = "12B";
-            keyInKey = "E";
+            keyInStandard = "E";
             break;
           case 5:
             keyInCamelot = "7B";
-            keyInKey = "F";
+            keyInStandard = "F";
             break;
           case 6:
             keyInCamelot = "2B";
-            keyInKey = "F♯";
+            keyInStandard = "F♯";
             break;
           case 7:
             keyInCamelot = "9B";
-            keyInKey = "G";
+            keyInStandard = "G";
             break;
           case 8:
             keyInCamelot = "4B";
-            keyInKey = "Ab";
+            keyInStandard = "Ab";
             break;
           case 9:
             keyInCamelot = "11B";
-            keyInKey = "A";
+            keyInStandard = "A";
             break;
           case 10:
             keyInCamelot = "6B";
-            keyInKey = "Bb";
+            keyInStandard = "Bb";
             break;
           case 11:
             keyInCamelot = "1B";
-            keyInKey = "B";
+            keyInStandard = "B";
             break;
           default:
             break;
@@ -344,9 +362,33 @@
       default:
         break;
     }
-    if (isCamelotEnabled && isKeyEnabled) return `${keyInKey} (${keyInCamelot})`;
-    if (isCamelotEnabled) return keyInCamelot;
-    return keyInKey;
+    if (isCamelotEnabled && isKeyEnabled) return `${keyInStandard} (${keyInCamelot})`; // if both are enabled return both
+    else if (isCamelotEnabled) return keyInCamelot; // else if only camelot is enabled return camelot
+    else return keyInStandard; // else return key in standard notation
+  };
+
+  var djTrackInfo = class {
+    constructor(res, resTrack) {
+      this.mode = res.mode;
+      this.key = res.key;
+      this.tempo = Math.round(res.tempo);
+      this.energy = Math.round(100 * res.energy);
+      this.danceability = Math.round(100 * res.danceability);
+      this.popularity = resTrack.popularity;
+      this.release_date = resTrack.album.release_date.split("-")[0];
+    }
+  };
+
+  getTrackInfo = async (id) => {
+    const djTrackInfoFromLocal = localStorage.getItem("djinfo-" + id);
+    if (djTrackInfoFromLocal != null) {
+      return JSON.parse(djTrackInfoFromLocal);
+    }
+    var res = await CosmosAsync.get("https://api.spotify.com/v1/audio-features/" + id);
+    var resTrack = await CosmosAsync.get("https://api.spotify.com/v1/tracks/" + id);
+    var info = new djTrackInfo(res, resTrack);
+    localStorage.setItem("djinfo-" + id, JSON.stringify(info));
+    return info;
   };
 
   // update Tracklist and insert DJ Info
@@ -433,29 +475,24 @@
           // create the element for the djInfo
           var text = document.createElement("p");
           var uri = trackUri;
-          var uriFinal = uri.split(":")[2];
-          var res = await CosmosAsync.get("https://api.spotify.com/v1/audio-features/" + uriFinal);
-          var resTrack = await CosmosAsync.get("https://api.spotify.com/v1/tracks/" + uriFinal);
-
-          var key = getKeyNotations(res);
+          var id = uri.split(":")[2]; // get Track id
+          var info = await getTrackInfo(id); // get Infos for Track from local or request
 
           // generate Display Text
           text.classList.add("djinfo-${k}");
           display_text = [];
-          if (isKeyEnabled || isCamelotEnabled) display_text.push(`${key}`);
-          if (isBPMEnabled) display_text.push(`${Math.round(res.tempo)} ♫`);
-          if (isEnergyEnabled) display_text.push(`E ${Math.round(100 * res.energy)}`);
-          if (isDanceEnabled) display_text.push(`D ${Math.round(100 * res.danceability)}`);
-          if (isPopularityEnabled) display_text.push(`♥ ${resTrack.popularity}`);
-          if (isYearEnabled) display_text.push(`${resTrack.album.release_date.split("-")[0]}`);
+          if (isKeyEnabled || isCamelotEnabled) display_text.push(`${getKeyInNotation(info.key, info.mode)}`);
+          if (isBPMEnabled) display_text.push(`${info.tempo} ♫`);
+          if (isEnergyEnabled) display_text.push(`E ${info.energy}`);
+          if (isDanceEnabled) display_text.push(`D ${info.danceability}`);
+          if (isPopularityEnabled) display_text.push(`♥ ${info.popularity}`);
+          if (isYearEnabled) display_text.push(`${info.release_date}`);
           display_text = display_text.join(" | ");
           text.innerHTML = display_text;
           text.classList.add("djinfo");
           text.style.fontSize = "13px";
           djInfoColumn.appendChild(text);
         }
-
-        if (!trackUri || hasdjinfo || !isTrack) continue;
       }
     }
   };
@@ -472,19 +509,16 @@
     nowPlayingWidgetdjInfoData.style.display = isTrack ? "flex" : "none";
 
     // get the Infos from requests, generating a Display Text
-    var request = new XMLHttpRequest();
     const uri = Spicetify.Player.data.track.uri;
-    const uriFinal = uri.split(":")[2];
-    const res = await CosmosAsync.get("https://api.spotify.com/v1/audio-features/" + uriFinal);
-    var resTrack = await CosmosAsync.get("https://api.spotify.com/v1/tracks/" + uriFinal);
-    var key = getKeyNotations(res);
+    const id = uri.split(":")[2];
+    var info = await getTrackInfo(id);
     display_text = [];
-    if (isKeyEnabled || isCamelotEnabled) display_text.push(`${key}`);
-    if (isBPMEnabled) display_text.push(`${Math.round(res.tempo)} ♫`);
-    if (isEnergyEnabled) display_text.push(`E ${Math.round(100 * res.energy)}`);
-    if (isDanceEnabled) display_text.push(`D ${Math.round(100 * res.danceability)}`);
-    if (isPopularityEnabled) display_text.push(`♥ ${resTrack.popularity}`);
-    if (isYearEnabled) display_text.push(`${resTrack.album.release_date.split("-")[0]}`);
+    if (isKeyEnabled || isCamelotEnabled) display_text.push(`${getKeyNotations(info.key, info.mode)}`);
+    if (isBPMEnabled) display_text.push(`${info.tempo} ♫`);
+    if (isEnergyEnabled) display_text.push(`E ${info.energy}`);
+    if (isDanceEnabled) display_text.push(`D ${info.danceability}`);
+    if (isPopularityEnabled) display_text.push(`♥ ${info.popularity}`);
+    if (isYearEnabled) display_text.push(`${info.release_date}`);
     display_text = display_text.join("<br>");
 
     nowPlayingWidgetdjInfoData.innerHTML = display_text;
