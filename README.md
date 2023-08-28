@@ -1,6 +1,6 @@
 # Spicetify DJ Info
 
-Welcome to the Spicetify DJ Info Extension! This extension enhances your Spicetify experience by providing valuable song analysis data for each track, including Key, BPM, Energy, Danceability, Popularity and Year. With this extension, you can gain deeper insights into your music library and discover songs perfectly fitting into your DJ set.
+Welcome to the Spicetify DJ Info Extension! This extension enhances your Spicetify experience by providing valuable song analysis data for each track, including Key, BPM, Energy, Danceability, Popularity and Year. With this extension, you can gain deeper insights into your music library and discover songs perfectly fitting into your DJ set or Playlist.
 
 ## ⭐Features
 
@@ -83,9 +83,22 @@ To toggle the visibility of DJ information, follow these steps:
 4. In the sub-menu click on the toggle switch to hide or show whatever you want
 5. Click on Apply Changes to make your settings visible
 
+## 📜 Changelog
+
+### V 2.0.0
+
+- Improved performance with storing data locally to speed up loading time and reduce API calls
+- Reworked the Settings menu to toggle the visibility of DJ information much easier
+
+### V 1.1.0
+
+- Added the option to toggle Year, Popularity, Danceability and Key in the standard notation
+- Bugfixes
+
 ## 🌐 Credits
 
-Big thanks to [duffey](https://github.com/Tetrax-10) for the main code of displaying something in the playlist and the now playing bar!
+Big thanks to [duffey](https://github.com/Tetrax-10) for the main code of displaying something in the playlist and the now playing widget!
+Also thanks to [je09](https://github.com/je09) for contributing the code for displaying both the standard notation and the Camelot system for the key aswell as the option to display it on the left side in now playing!
 
 ## 💬 Feedback and Contributions
 
