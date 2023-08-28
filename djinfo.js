@@ -540,10 +540,8 @@ button.btn:hover {
           var uri = trackUri;
           var id = uri.split(":")[2]; // get Track id
           var info = await getTrackInfo(id); // get Infos for Track from local or request
-          console.log(info);
           var keyInNotation = getKeyInNotation(info.key, info.mode);
           // generate Display Text
-          text.classList.add("djinfo-${k}");
           display_text = [];
           if (CONFIG.isKeyEnabled || CONFIG.isCamelotEnabled) display_text.push(`${keyInNotation}`);
           if (CONFIG.isBPMEnabled) display_text.push(`${info.tempo} ♫`);
