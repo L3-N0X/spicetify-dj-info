@@ -1,7 +1,7 @@
 // @ts-nocheck
 // NAME: DJ Info
 // AUTHOR: L3N0X
-// VERSION: 2.0.0
+// VERSION: 2.1.0
 // DESCRIPTION: BPM and Energy display for each song
 
 /// <reference path='../globals.d.ts' />
@@ -26,6 +26,7 @@
       isPlaylistEnabled: true,
       isNowPlayingEnabled: true,
       isLeftPlayingEnabled: false,
+      isRecommendationsEnabled: true,
       isBPMEnabled: true,
       isKeyEnabled: false,
       isCamelotEnabled: true,
@@ -49,6 +50,7 @@
   };
 
   // initialize css grid changes
+  const fourColumnGridCss = "[first] 4fr [var1] 2fr [var2] 2fr [last] minmax(120px,1fr)";
   const fiveColumnGridCss = "[index] 16px [first] 3fr [var1] 2fr [var2] 2fr [last] minmax(120px,1fr)";
   const sixColumnGridCss = "[index] 16px [first] 5fr [var1] 3fr [var2] 2fr [var3] 2fr [last] minmax(120px,1fr)";
   const sevenColumnGridCss =
@@ -109,13 +111,16 @@
     return ["OTHER", null];
   }
 
-  let oldTracklist = null;
-  let tracklist = null;
+  let tracklistArr = null;
+  let oldTracklistArr = null;
   let oldNowPlayingWidget = null;
   let nowPlayingWidget = null;
   let updateNowPlayingWidget = null;
   let updateTracklist = null;
   let nowPlayingWidgetdjInfoData = null;
+  let recommendations = null;
+  let toprecommendation = null;
+  let oldRecommendations = null;
 
   function saveConfig() {
     Spicetify.LocalStorage.set("dj-info-config", JSON.stringify(CONFIG));
@@ -140,7 +145,6 @@
               CONFIG[field] = state;
               setValue(state);
               saveConfig();
-              func();
             },
           },
           react.createElement(DisplayIcon, {
@@ -244,52 +248,46 @@ button.btn:hover {
       react.createElement(ConfigItem, {
         name: "Enable in Playlists",
         field: "isPlaylistEnabled",
-        func: () => {},
       }),
       react.createElement(ConfigItem, {
         name: "Enable in Now Playing",
         field: "isNowPlayingEnabled",
-        func: () => {},
       }),
       react.createElement(ConfigItem, {
         name: "Display Info on Left Side in Now Playing",
         field: "isLeftPlayingEnabled",
-        func: () => {},
+      }),
+      react.createElement(ConfigItem, {
+        name: "Enable in Recommendations",
+        field: "isRecommendationsEnabled",
       }),
       react.createElement(ConfigItem, {
         name: "Enable BPM",
         field: "isBPMEnabled",
-        func: () => {},
       }),
       react.createElement(ConfigItem, {
         name: "Enable Key (Standard Notation)",
         field: "isKeyEnabled",
-        func: () => {},
       }),
       react.createElement(ConfigItem, {
         name: "Enable Key (Camelot Notation)",
         field: "isCamelotEnabled",
-        func: () => {},
       }),
       react.createElement(ConfigItem, {
         name: "Enable Popularity",
         field: "isPopularityEnabled",
-        func: () => {},
       }),
       react.createElement(ConfigItem, {
         name: "Enable Energy",
         field: "isEnergyEnabled",
-        func: () => {},
       }),
       react.createElement(ConfigItem, {
         name: "Enable Danceability",
         field: "isDanceEnabled",
-        func: () => {},
       }),
       react.createElement(ConfigItem, {
         name: "Enable Year",
         field: "isYearEnabled",
-        func: () => {},
       }),
       react.createElement(reloadItem, {
         name: "Reload Window to apply changes",
@@ -521,6 +519,9 @@ button.btn:hover {
           track.insertBefore(djInfoColumn, lastColumn);
 
           switch (colIndexInt) {
+            case 3:
+              track.style["grid-template-columns"] = fourColumnGridCss;
+              break;
             case 4:
               track.style["grid-template-columns"] = fiveColumnGridCss;
               break;
@@ -558,6 +559,72 @@ button.btn:hover {
       }
     }
   };
+
+  updateRecommendations = async () => {
+    if (!CONFIG.isRecommendationsEnabled) return;
+    if (!recommendations) {
+      console.log("no recommendations found");
+      return;
+    }
+    const tracklists = recommendations.getElementsByClassName("main-trackList-trackList");
+    for (const tracklist_ of tracklists) {
+      const tracks = tracklist_.getElementsByClassName("main-trackList-trackListRow");
+      for (const track of tracks) {
+        const hasdjinfo = track.getElementsByClassName("djinfo").length > 0;
+        const trackUri = getTracklistTrackUri(track);
+        const isTrack = trackUri.includes("track");
+
+        let djInfoColumn = track.querySelector(".djInfoList");
+        if (!djInfoColumn) {
+          // Add column for djInfos
+          let lastColumn = track.querySelector(".main-trackList-rowSectionEnd");
+          let colIndexInt = parseInt(lastColumn.getAttribute("aria-colindex"));
+          lastColumn.setAttribute("aria-colindex", (colIndexInt + 1).toString());
+          djInfoColumn = document.createElement("div");
+          djInfoColumn.setAttribute("aria-colindex", colIndexInt.toString());
+          // djInfoColumn.role = "gridcell"
+          djInfoColumn.style.display = "flex";
+          djInfoColumn.style.justifyContent = "center";
+          djInfoColumn.style.width = "100%";
+          djInfoColumn.classList.add("main-trackList-rowSectionVariable");
+          djInfoColumn.classList.add("djInfoList");
+          track.insertBefore(djInfoColumn, lastColumn);
+
+          switch (colIndexInt) {
+            case 3:
+              track.style["grid-template-columns"] = fourColumnGridCss;
+              break;
+            default:
+              console.log("not 3 columns in Recommendations");
+              break;
+          }
+
+          if (!trackUri || hasdjinfo || !isTrack) continue;
+          // create the element for the djInfo
+          var text = document.createElement("p");
+          var uri = trackUri;
+
+          var id = uri.split(":")[2]; // get Track id
+          var info = await getTrackInfo(id); // get Infos for Track from local or request
+          var keyInNotation = getKeyInNotation(info.key, info.mode);
+          // generate Display Text
+          display_text = [];
+          if (CONFIG.isKeyEnabled || CONFIG.isCamelotEnabled) display_text.push(`${keyInNotation}`);
+          if (CONFIG.isBPMEnabled) display_text.push(`${info.tempo} ♫`);
+          if (CONFIG.isEnergyEnabled) display_text.push(`E ${info.energy}`);
+          if (CONFIG.isDanceEnabled) display_text.push(`D ${info.danceability}`);
+          if (CONFIG.isPopularityEnabled) display_text.push(`♥ ${info.popularity}`);
+          if (CONFIG.isYearEnabled) display_text.push(`${info.release_date}`);
+          display_text = display_text.join(" | ");
+          text.innerHTML = display_text;
+          text.classList.add("djinfo");
+          text.style.fontSize = "12px";
+          djInfoColumn.appendChild(text);
+        }
+      }
+    }
+  };
+
   // Add DJ Info to Now Playing
   updateNowPlayingWidget = async () => {
     if (!nowPlayingWidgetdjInfoData || !CONFIG.isNowPlayingEnabled) return;
@@ -598,18 +665,22 @@ button.btn:hover {
   });
 
   const observerCallback = async () => {
-    oldTracklist = tracklist;
-    tracklist = document.querySelector(".main-trackList-indexable");
-    if (tracklist && !tracklist.isEqualNode(oldTracklist)) {
-      if (oldTracklist) {
-        tracklistObserver.disconnect();
+    oldTracklistArr = tracklistArr;
+    tracklistArr = document.getElementsByClassName("main-trackList-indexable");
+    var i = 0;
+    for (tracklist of tracklistArr) {
+      i++;
+      if (tracklist && !tracklist.isEqualNode(oldTracklistArr[i])) {
+        if (oldTracklistArr[i]) {
+          tracklistObserver.disconnect();
+        }
+        [pageType, id] = getPageType();
+        updateTracklist();
+        tracklistObserver.observe(tracklist, {
+          childList: true,
+          subtree: true,
+        });
       }
-      [pageType, id] = getPageType();
-      updateTracklist();
-      tracklistObserver.observe(tracklist, {
-        childList: true,
-        subtree: true,
-      });
     }
 
     oldNowPlayingWidget = nowPlayingWidget;
@@ -628,6 +699,16 @@ button.btn:hover {
         trackInfo.after(nowPlayingWidgetdjInfoData);
       }
       updateNowPlayingWidget();
+    }
+
+    oldRecommendation = toprecommendation;
+    recommendations = document.getElementsByClassName("playlist-playlist-recommendedTrackList")[0];
+    if (recommendations) {
+      toprecommendation = recommendations.getElementsByClassName("main-trackList-trackListRow")[0];
+      if (toprecommendation && !toprecommendation.isEqualNode(oldRecommendation)) {
+        console.log("recommendations found");
+        updateRecommendations();
+      }
     }
   };
   const observer = new MutationObserver(observerCallback);
