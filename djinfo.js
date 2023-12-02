@@ -629,7 +629,7 @@ button.btn:hover {
   updateNowPlayingWidget = async () => {
     if (!nowPlayingWidgetdjInfoData || !CONFIG.isNowPlayingEnabled) return;
     const getTrackUri = () => {
-      return Spicetify.Player.data.track.uri;
+      return Spicetify.Player.data.item.uri;
     };
     // Get the current Track
     const trackUri = getTrackUri();
@@ -638,7 +638,7 @@ button.btn:hover {
     nowPlayingWidgetdjInfoData.style.display = isTrack ? "flex" : "none";
 
     // get the Infos from requests, generating a Display Text
-    const uri = Spicetify.Player.data.track.uri;
+    const uri = Spicetify.Player.data.item.uri;
     const id = uri.split(":")[2];
     var info = await getTrackInfo(id);
     display_text = [];
