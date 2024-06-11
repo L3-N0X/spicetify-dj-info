@@ -50,11 +50,11 @@
   };
 
   // initialize css grid changes
-  const fourColumnGridCss = "[first] 4fr [var1] 2fr [var2] 2fr [last] minmax(120px,1fr) !important";
-  const fiveColumnGridCss = "[index] 16px [first] 3fr [var1] 2fr [var2] 2fr [last] minmax(120px,1fr) !important";
-  const sixColumnGridCss = "[index] 16px [first] 5fr [var1] 3fr [var2] 2fr [var3] 2fr [last] minmax(120px,1fr) !important";
+  const fourColumnGridCss = "grid-template-columns: [first] 4fr [var1] 2fr [var2] 2fr [last] minmax(120px,1fr) !important";
+  const fiveColumnGridCss = "grid-template-columns: [index] 16px [first] 3fr [var1] 2fr [var2] 2fr [last] minmax(120px,1fr) !important";
+  const sixColumnGridCss = "grid-template-columns: [index] 16px [first] 5fr [var1] 3fr [var2] 2fr [var3] 2fr [last] minmax(120px,1fr) !important";
   const sevenColumnGridCss =
-    "[index] 16px [first] 5fr [var1] 3fr [var2] 2fr [var3] minmax(120px,1fr) [var4] 2fr [last] minmax(120px,1fr) !important";
+    "grid-template-columns: [index] 16px [first] 5fr [var1] 3fr [var2] 2fr [var3] minmax(120px,1fr) [var4] 2fr [last] minmax(120px,1fr) !important";
 
   const waitForElement = (selector) => {
     return new Promise((resolve) => {
@@ -473,13 +473,13 @@ button.btn:hover {
         tracklistHeader.insertBefore(headerColumn, lastColumn);
         switch (colIndexInt) {
           case 4:
-            tracklistHeader.style["grid-template-columns"] = fiveColumnGridCss;
+            tracklistHeader.setAttribute("style", fiveColumnGridCss);
             break;
           case 5:
-            tracklistHeader.style["grid-template-columns"] = sixColumnGridCss;
+            tracklistHeader.setAttribute("style", sixColumnGridCss);
             break;
           case 6:
-            tracklistHeader.style["grid-template-columns"] = sevenColumnGridCss;
+            tracklistHeader.setAttribute("style", sevenColumnGridCss);
             break;
           default:
             break;
@@ -520,16 +520,16 @@ button.btn:hover {
 
           switch (colIndexInt) {
             case 3:
-              track.style["grid-template-columns"] = fourColumnGridCss;
+              track.setAttribute("style", fourColumnGridCss);
               break;
             case 4:
-              track.style["grid-template-columns"] = fiveColumnGridCss;
+              track.setAttribute("style", fiveColumnGridCss);
               break;
             case 5:
-              track.style["grid-template-columns"] = sixColumnGridCss;
+              track.setAttribute("style", sixColumnGridCss);
               break;
             case 6:
-              track.style["grid-template-columns"] = sevenColumnGridCss;
+              track.setAttribute("style", sevenColumnGridCss);
               break;
             default:
               break;
@@ -592,7 +592,7 @@ button.btn:hover {
 
           switch (colIndexInt) {
             case 3:
-              track.style["grid-template-columns"] = fourColumnGridCss;
+              track.setAttribute("style", fourColumnGridCss);
               break;
             default:
               console.log("not 3 columns in Recommendations");
