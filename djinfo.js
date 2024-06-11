@@ -50,11 +50,11 @@
   };
 
   // initialize css grid changes
-  const fourColumnGridCss = "[first] 4fr [var1] 2fr [var2] 2fr [last] minmax(120px,1fr)";
-  const fiveColumnGridCss = "[index] 16px [first] 3fr [var1] 2fr [var2] 2fr [last] minmax(120px,1fr)";
-  const sixColumnGridCss = "[index] 16px [first] 5fr [var1] 3fr [var2] 2fr [var3] 2fr [last] minmax(120px,1fr)";
+  const fourColumnGridCss = "[first] 4fr [var1] 2fr [var2] 2fr [last] minmax(120px,1fr) !important";
+  const fiveColumnGridCss = "[index] 16px [first] 3fr [var1] 2fr [var2] 2fr [last] minmax(120px,1fr) !important";
+  const sixColumnGridCss = "[index] 16px [first] 5fr [var1] 3fr [var2] 2fr [var3] 2fr [last] minmax(120px,1fr) !important";
   const sevenColumnGridCss =
-    "[index] 16px [first] 5fr [var1] 3fr [var2] 2fr [var3] minmax(120px,1fr) [var4] 2fr [last] minmax(120px,1fr)";
+    "[index] 16px [first] 5fr [var1] 3fr [var2] 2fr [var3] minmax(120px,1fr) [var4] 2fr [last] minmax(120px,1fr) !important";
 
   const waitForElement = (selector) => {
     return new Promise((resolve) => {
