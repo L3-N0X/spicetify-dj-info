@@ -50,11 +50,17 @@
   };
 
   // initialize css grid changes
-  const fourColumnGridCss = "grid-template-columns: [first] 4fr [var1] 2fr [var2] 2fr [last] minmax(120px,1fr) !important";
-  const fiveColumnGridCss = "grid-template-columns: [index] 16px [first] 3fr [var1] 2fr [var2] 2fr [last] minmax(120px,1fr) !important";
-  const sixColumnGridCss = "grid-template-columns: [index] 16px [first] 5fr [var1] 3fr [var2] 2fr [var3] 2fr [last] minmax(120px,1fr) !important";
+  const fourColumnGridCss =
+    "grid-template-columns: [first] 4fr [var1] 2fr [var2] 2fr [last] minmax(120px,1fr) !important";
+  const fiveColumnGridCss =
+    "grid-template-columns: [index] 16px [first] 3fr [var1] 2fr [var2] 2fr [last] minmax(120px,1fr) !important";
+  const sixColumnGridCss =
+    "grid-template-columns: [index] 16px [first] 5fr [var1] 3fr [var2] 2fr [var3] 2fr [last] minmax(120px,1fr) !important";
   const sevenColumnGridCss =
     "grid-template-columns: [index] 16px [first] 5fr [var1] 3fr [var2] 2fr [var3] minmax(120px,1fr) [var4] 2fr [last] minmax(120px,1fr) !important";
+
+  const recommendationColumnGridCss =
+    "grid-template-columns: [first] 3fr [var1] 1fr [var2] 0px [var3] 1fr [last] minmax(120px,1fr) !important";
 
   const waitForElement = (selector) => {
     return new Promise((resolve) => {
@@ -84,7 +90,8 @@
     return (
       values[0]?.pendingProps?.children[0]?.props?.children?.props?.uri ||
       values[0]?.pendingProps?.children[0]?.props?.children?.props?.children?.props?.uri ||
-      values[0]?.pendingProps?.children[0]?.props?.children?.props?.children?.props?.children?.props?.uri ||
+      values[0]?.pendingProps?.children[0]?.props?.children?.props?.children?.props?.children?.props
+        ?.uri ||
       values[0]?.pendingProps?.children[0]?.props?.children[0]?.props?.uri
     );
   }
@@ -421,7 +428,8 @@ button.btn:hover {
       default:
         break;
     }
-    if (CONFIG.isCamelotEnabled && CONFIG.isKeyEnabled) return `${keyInStandard}&nbsp;(${keyInCamelot})`; // if both are enabled return both
+    if (CONFIG.isCamelotEnabled && CONFIG.isKeyEnabled)
+      return `${keyInStandard}&nbsp;(${keyInCamelot})`; // if both are enabled return both
     if (CONFIG.isCamelotEnabled) return keyInCamelot; // else if only camelot is enabled return camelot
     return keyInStandard; // else return key in standard notation
   };
@@ -579,6 +587,11 @@ button.btn:hover {
           // Add column for djInfos
           let lastColumn = track.querySelector(".main-trackList-rowSectionEnd");
           let colIndexInt = parseInt(lastColumn.getAttribute("aria-colindex"));
+          let unusedColumn = track.querySelector(`[aria-colindex="${colIndexInt - 1}"]`);
+          if (unusedColumn) {
+            track.removeChild(unusedColumn);
+            colIndexInt--;
+          }
           lastColumn.setAttribute("aria-colindex", (colIndexInt + 1).toString());
           djInfoColumn = document.createElement("div");
           djInfoColumn.setAttribute("aria-colindex", colIndexInt.toString());
@@ -591,11 +604,8 @@ button.btn:hover {
           track.insertBefore(djInfoColumn, lastColumn);
 
           switch (colIndexInt) {
-            case 3:
-              track.setAttribute("style", fourColumnGridCss);
-              break;
-            default:
-              console.log("not 3 columns in Recommendations");
+            case 4:
+              track.setAttribute("style", recommendationColumnGridCss);
               break;
           }
 
@@ -642,7 +652,8 @@ button.btn:hover {
     const id = uri.split(":")[2];
     var info = await getTrackInfo(id);
     display_text = [];
-    if (CONFIG.isKeyEnabled || CONFIG.isCamelotEnabled) display_text.push(`${getKeyInNotation(info.key, info.mode)}`);
+    if (CONFIG.isKeyEnabled || CONFIG.isCamelotEnabled)
+      display_text.push(`${getKeyInNotation(info.key, info.mode)}`);
     if (CONFIG.isBPMEnabled) display_text.push(`${info.tempo} ♫`);
     if (CONFIG.isEnergyEnabled) display_text.push(`E ${info.energy}`);
     if (CONFIG.isDanceEnabled) display_text.push(`D ${info.danceability}`);
@@ -692,7 +703,9 @@ button.btn:hover {
       nowPlayingWidgetdjInfoData.style.minWidth = "34px";
       nowPlayingWidgetdjInfoData.style.fontSize = "11px";
       nowPlayingWidgetdjInfoData.style.textAlign = "center";
-      const trackInfo = await waitForElement(".main-nowPlayingWidget-nowPlaying .main-trackInfo-container");
+      const trackInfo = await waitForElement(
+        ".main-nowPlayingWidget-nowPlaying .main-trackInfo-container"
+      );
       if (CONFIG.isLeftPlayingEnabled) {
         nowPlayingWidget.insertBefore(nowPlayingWidgetdjInfoData, trackInfo);
       } else {
