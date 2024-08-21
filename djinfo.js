@@ -595,8 +595,9 @@ button.btn:hover {
               track.setAttribute("style", fourColumnGridCss);
               break;
             default:
-              console.log("not 3 columns in Recommendations");
-              break;
+              let addButton = lastColumn.querySelector(".encore-text-body-small-bold")
+              lastColumn.removeChild(addButton)
+              console.log("not 3 columns in Recommendations, removing add button");
           }
 
           if (!trackUri || hasdjinfo || !isTrack) continue;
