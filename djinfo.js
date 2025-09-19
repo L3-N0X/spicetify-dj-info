@@ -468,6 +468,9 @@ button.btn:hover {
     if (keysToRemove.length > 0) {
       Spicetify.showNotification("Cleaned up old DJ Info tracks from local storage.");
     }
+
+    trackDb = {};
+    saveTrackDb();
   }
 
   cleanupOldStorage();
