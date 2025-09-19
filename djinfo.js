@@ -441,18 +441,189 @@ button.btn:hover {
       this.release_date = resTrack.album.release_date.split("-")[0];
     }
   };
+ 
+  let trackInfoQueue = [];
+  let trackInfoTimeout = null;
+  let trackDb = {};
+
+  function loadTrackDb() {
+    try {
+      trackDb = JSON.parse(Spicetify.LocalStorage.get("dj-info-tracks") || "{}");
+    } catch {
+      trackDb = {};
+    }
+  }
+
+  function saveTrackDb() {
+    Spicetify.LocalStorage.set("dj-info-tracks", JSON.stringify(trackDb));
+  }
+
+  // Load the DB at startup
+  loadTrackDb();
+
+  function cleanupOldStorage() {
+    const keysToRemove = [];
+    for (let i = 0; i < Spicetify.LocalStorage.length; i++) {
+      const key = Spicetify.LocalStorage.key(i);
+      if (key.startsWith("djinfo-") && key !== "dj-info-tracks" && key !== "dj-info-config") {
+        keysToRemove.push(key);
+      }
+    }
+    keysToRemove.forEach((key) => Spicetify.LocalStorage.remove(key));
+    if (keysToRemove.length > 0) {
+      Spicetify.showNotification("Cleaned up old DJ Info tracks from local storage.");
+    }
+  }
+
+  cleanupOldStorage();
 
   getTrackInfo = async (id) => {
     // get Track Info from local storage or request
-    const djTrackInfoFromLocal = localStorage.getItem("djinfo-" + id);
-    if (djTrackInfoFromLocal != null) {
-      return JSON.parse(djTrackInfoFromLocal);
+    if (trackDb[id]) {
+      return trackDb[id];
     }
     var res = await CosmosAsync.get("https://api.spotify.com/v1/audio-features/" + id);
     var resTrack = await CosmosAsync.get("https://api.spotify.com/v1/tracks/" + id);
     var info = new djTrackInfo(res, resTrack);
-    localStorage.setItem("djinfo-" + id, JSON.stringify(info));
+    trackDb[id] = info;
+    saveTrackDb();
     return info;
+  };
+
+    getTrackInfoBatch = async (ids) => {
+    const idsToFetch = ids.filter((id) => !trackDb[id]);
+
+    if (idsToFetch.length > 0) {
+      try {
+        const res = await CosmosAsync.get(`https://api.spotify.com/v1/audio-features?ids=${idsToFetch.join(",")}`);
+        const resTrack = await CosmosAsync.get(`https://api.spotify.com/v1/tracks?ids=${idsToFetch.join(",")}`);
+
+        res.audio_features.forEach((track, i) => {
+          if (track) {
+            const trackDetails = resTrack.tracks.find((t) => t.id === track.id);
+            if (trackDetails) {
+              var info = new djTrackInfo(track, trackDetails);
+              trackDb[track.id] = info;
+            }
+          }
+        });
+        saveTrackDb();
+      } catch (error) {
+        console.error("DJ Info: Error fetching batch track info:", error);
+      }
+    }
+    return ids.map((id) => {
+      if (trackDb[id]) return trackDb[id];
+      return null;
+    });
+  };
+
+ const processTrackInfoQueue = async () => {
+   if (trackInfoQueue.length === 0) return;
+
+   const itemsToProcess = [...trackInfoQueue];
+   trackInfoQueue = [];
+
+   const ids = [...new Set(itemsToProcess.map((item) => item.id))];
+
+   const CHUNK_SIZE = 100;
+   for (let i = 0; i < ids.length; i += CHUNK_SIZE) {
+     const chunk = ids.slice(i, i + CHUNK_SIZE);
+     await getTrackInfoBatch(chunk);
+   }
+
+   // After fetching, re-run updateTracklist to render the info
+   updateTracklist();
+   updateRecommendations();
+ };
+
+ const queueTrackInfo = (id, element) => {
+   const existing = trackInfoQueue.find((item) => item.id === id);
+   if (!existing) {
+     trackInfoQueue.push({ id, element });
+   }
+
+   clearTimeout(trackInfoTimeout);
+   trackInfoTimeout = setTimeout(processTrackInfoQueue, 100);
+ };
+
+  const addInfoToTrack = (track, isRecommendation = false) => {
+    const hasdjinfo = track.getElementsByClassName("djinfo").length > 0;
+    const trackUri = getTracklistTrackUri(track);
+    if (!trackUri) {
+      console.error("Could not find track URI for track:", track, " this might be caused by a recent Spotify update, please report it on the GitHub page.");
+      return;
+    }
+    const isTrack = trackUri.includes("track");
+
+    let djInfoColumn = track.querySelector(".djInfoList");
+    if (!djInfoColumn) {
+      // Add column for djInfos
+      let lastColumn = track.querySelector(".main-trackList-rowSectionEnd");
+      let colIndexInt = parseInt(lastColumn.getAttribute("aria-colindex"));
+      lastColumn.setAttribute("aria-colindex", (colIndexInt + 1).toString());
+      djInfoColumn = document.createElement("div");
+      djInfoColumn.setAttribute("aria-colindex", colIndexInt.toString());
+      djInfoColumn.style.display = "flex";
+      djInfoColumn.classList.add("main-trackList-rowSectionVariable");
+      djInfoColumn.classList.add("djInfoList");
+      if (isRecommendation) {
+        djInfoColumn.style.justifyContent = "center";
+        djInfoColumn.style.width = "100%";
+      }
+      track.insertBefore(djInfoColumn, lastColumn);
+
+      switch (colIndexInt) {
+        case 3:
+          track.style["grid-template-columns"] = fourColumnGridCss;
+          break;
+        case 4:
+          track.style["grid-template-columns"] = fiveColumnGridCss;
+          break;
+        case 5:
+          track.style["grid-template-columns"] = sixColumnGridCss;
+          break;
+        case 6:
+          track.style["grid-template-columns"] = sevenColumnGridCss;
+          break;
+        default:
+          if (!isRecommendation) console.log("not 3-6 columns in Tracklist");
+          break;
+      }
+    }
+
+    if (!trackUri || !isTrack) return;
+
+    const uri = trackUri;
+    const id = uri.split(":")[2];
+    const info = trackDb[id];
+
+    if (info) {
+      if (hasdjinfo) return;
+      const parsedInfo = info;
+      const keyInNotation = getKeyInNotation(parsedInfo.key, parsedInfo.mode);
+      let display_text = [];
+      if (CONFIG.isKeyEnabled || CONFIG.isCamelotEnabled) display_text.push(`${keyInNotation}`);
+      if (CONFIG.isBPMEnabled) display_text.push(`${parsedInfo.tempo} ♫`);
+      if (CONFIG.isEnergyEnabled) display_text.push(`E ${parsedInfo.energy}`);
+      if (CONFIG.isDanceEnabled) display_text.push(`D ${parsedInfo.danceability}`);
+      if (CONFIG.isPopularityEnabled) display_text.push(`♥ ${parsedInfo.popularity}`);
+      if (CONFIG.isYearEnabled) display_text.push(`${parsedInfo.release_date}`);
+      display_text = display_text.join(" | ");
+
+      const text = document.createElement("p");
+      text.innerHTML = display_text;
+      text.classList.add("djinfo");
+      text.style.fontSize = "12px";
+      djInfoColumn.innerHTML = ""; // Clear previous content
+      djInfoColumn.appendChild(text);
+    } else {
+      if (hasdjinfo) {
+        const djinfoElement = track.querySelector(".djinfo");
+        if (djinfoElement) djinfoElement.remove();
+      }
+      queueTrackInfo(id, djInfoColumn);
+    }
   };
 
   // update Tracklist and insert DJ Info
@@ -503,67 +674,11 @@ button.btn:hover {
       const tracks = tracklist_.getElementsByClassName("main-trackList-trackListRow");
 
       for (const track of tracks) {
-        const hasdjinfo = track.getElementsByClassName("djinfo").length > 0;
-        const trackUri = getTracklistTrackUri(track);
-        if (!trackUri) {
-          // When trackUri is null, there is an issue, log an error and skip this track
-          console.error("Could not find track URI for track:", track, " this might be caused by a recent Spotify update, please report it on the GitHub page.");
-          continue;
-        }
-        const isTrack = trackUri.includes("track");
-
-        let djInfoColumn = track.querySelector(".djInfoList");
-        if (!djInfoColumn) {
-          // Add column for djInfos
-          let lastColumn = track.querySelector(".main-trackList-rowSectionEnd");
-          let colIndexInt = parseInt(lastColumn.getAttribute("aria-colindex"));
-          lastColumn.setAttribute("aria-colindex", (colIndexInt + 1).toString());
-          djInfoColumn = document.createElement("div");
-          djInfoColumn.setAttribute("aria-colindex", colIndexInt.toString());
-          // djInfoColumn.role = "gridcell"
-          djInfoColumn.style.display = "flex";
-          djInfoColumn.classList.add("main-trackList-rowSectionVariable");
-          djInfoColumn.classList.add("djInfoList");
-          track.insertBefore(djInfoColumn, lastColumn);
-
-          switch (colIndexInt) {
-            case 3:
-              track.style["grid-template-columns"] = fourColumnGridCss;
-              break;
-            case 4:
-              track.style["grid-template-columns"] = fiveColumnGridCss;
-              break;
-            case 5:
-              track.style["grid-template-columns"] = sixColumnGridCss;
-              break;
-            case 6:
-              track.style["grid-template-columns"] = sevenColumnGridCss;
-              break;
-            default:
-              break;
-          }
-
-          if (!trackUri || hasdjinfo || !isTrack) continue;
-          // create the element for the djInfo
-          var text = document.createElement("p");
-          var uri = trackUri;
-          var id = uri.split(":")[2]; // get Track id
-          var info = await getTrackInfo(id); // get Infos for Track from local or request
-          var keyInNotation = getKeyInNotation(info.key, info.mode);
-          // generate Display Text
-          display_text = [];
-          if (CONFIG.isKeyEnabled || CONFIG.isCamelotEnabled) display_text.push(`${keyInNotation}`);
-          if (CONFIG.isBPMEnabled) display_text.push(`${info.tempo} ♫`);
-          if (CONFIG.isEnergyEnabled) display_text.push(`E ${info.energy}`);
-          if (CONFIG.isDanceEnabled) display_text.push(`D ${info.danceability}`);
-          if (CONFIG.isPopularityEnabled) display_text.push(`♥ ${info.popularity}`);
-          if (CONFIG.isYearEnabled) display_text.push(`${info.release_date}`);
-          display_text = display_text.join(" | ");
-          text.innerHTML = display_text;
-          text.classList.add("djinfo");
-          text.style.fontSize = "12px";
-          djInfoColumn.appendChild(text);
-        }
+        addInfoToTrack(track);
+        const observer = new MutationObserver(() => {
+          addInfoToTrack(track);
+        });
+        observer.observe(track, { childList: true, subtree: true });
       }
     }
   };
@@ -571,64 +686,17 @@ button.btn:hover {
   updateRecommendations = async () => {
     if (!CONFIG.isRecommendationsEnabled) return;
     if (!recommendations) {
-      console.log("no recommendations found");
       return;
     }
     const tracklists = recommendations.getElementsByClassName("main-trackList-trackList");
     for (const tracklist_ of tracklists) {
       const tracks = tracklist_.getElementsByClassName("main-trackList-trackListRow");
       for (const track of tracks) {
-        const hasdjinfo = track.getElementsByClassName("djinfo").length > 0;
-        const trackUri = getTracklistTrackUri(track);
-        const isTrack = trackUri.includes("track");
-
-        let djInfoColumn = track.querySelector(".djInfoList");
-        if (!djInfoColumn) {
-          // Add column for djInfos
-          let lastColumn = track.querySelector(".main-trackList-rowSectionEnd");
-          let colIndexInt = parseInt(lastColumn.getAttribute("aria-colindex"));
-          lastColumn.setAttribute("aria-colindex", (colIndexInt + 1).toString());
-          djInfoColumn = document.createElement("div");
-          djInfoColumn.setAttribute("aria-colindex", colIndexInt.toString());
-          // djInfoColumn.role = "gridcell"
-          djInfoColumn.style.display = "flex";
-          djInfoColumn.style.justifyContent = "center";
-          djInfoColumn.style.width = "100%";
-          djInfoColumn.classList.add("main-trackList-rowSectionVariable");
-          djInfoColumn.classList.add("djInfoList");
-          track.insertBefore(djInfoColumn, lastColumn);
-
-          switch (colIndexInt) {
-            case 3:
-              track.style["grid-template-columns"] = fourColumnGridCss;
-              break;
-            default:
-              console.log("not 3 columns in Recommendations");
-              break;
-          }
-
-          if (!trackUri || hasdjinfo || !isTrack) continue;
-          // create the element for the djInfo
-          var text = document.createElement("p");
-          var uri = trackUri;
-
-          var id = uri.split(":")[2]; // get Track id
-          var info = await getTrackInfo(id); // get Infos for Track from local or request
-          var keyInNotation = getKeyInNotation(info.key, info.mode);
-          // generate Display Text
-          display_text = [];
-          if (CONFIG.isKeyEnabled || CONFIG.isCamelotEnabled) display_text.push(`${keyInNotation}`);
-          if (CONFIG.isBPMEnabled) display_text.push(`${info.tempo} ♫`);
-          if (CONFIG.isEnergyEnabled) display_text.push(`E ${info.energy}`);
-          if (CONFIG.isDanceEnabled) display_text.push(`D ${info.danceability}`);
-          if (CONFIG.isPopularityEnabled) display_text.push(`♥ ${info.popularity}`);
-          if (CONFIG.isYearEnabled) display_text.push(`${info.release_date}`);
-          display_text = display_text.join(" | ");
-          text.innerHTML = display_text;
-          text.classList.add("djinfo");
-          text.style.fontSize = "12px";
-          djInfoColumn.appendChild(text);
-        }
+        addInfoToTrack(track, true);
+        const observer = new MutationObserver(() => {
+          addInfoToTrack(track, true);
+        });
+        observer.observe(track, { childList: true, subtree: true });
       }
     }
   };
@@ -637,28 +705,44 @@ button.btn:hover {
   updateNowPlayingWidget = async () => {
     if (!nowPlayingWidgetdjInfoData || !CONFIG.isNowPlayingEnabled) return;
     const getTrackUri = () => {
-      return Spicetify.Player.data.track.uri;
+      if (!Spicetify.Player.data || !Spicetify.Player.data.item) return null;
+      return Spicetify.Player.data.item.uri;
     };
     // Get the current Track
     const trackUri = getTrackUri();
+    if (!trackUri) {
+      nowPlayingWidgetdjInfoData.style.display = "none";
+      return;
+    }
     const isTrack = trackUri.includes("track");
 
     nowPlayingWidgetdjInfoData.style.display = isTrack ? "flex" : "none";
 
     // get the Infos from requests, generating a Display Text
-    const uri = Spicetify.Player.data.track.uri;
+    const uri = trackUri;
     const id = uri.split(":")[2];
-    var info = await getTrackInfo(id);
-    display_text = [];
-    if (CONFIG.isKeyEnabled || CONFIG.isCamelotEnabled) display_text.push(`${getKeyInNotation(info.key, info.mode)}`);
-    if (CONFIG.isBPMEnabled) display_text.push(`${info.tempo} ♫`);
-    if (CONFIG.isEnergyEnabled) display_text.push(`E ${info.energy}`);
-    if (CONFIG.isDanceEnabled) display_text.push(`D ${info.danceability}`);
-    if (CONFIG.isPopularityEnabled) display_text.push(`♥ ${info.popularity}`);
-    if (CONFIG.isYearEnabled) display_text.push(`${info.release_date}`);
-    display_text = display_text.join("<br>");
-
-    nowPlayingWidgetdjInfoData.innerHTML = display_text;
+    const info = await getTrackInfo(id);
+    if (info) {
+      const display_text = [];
+      if (CONFIG.isKeyEnabled || CONFIG.isCamelotEnabled) display_text.push(`${getKeyInNotation(info.key, info.mode)}`);
+      if (CONFIG.isBPMEnabled) display_text.push(`${info.tempo} ♫`);
+      if (CONFIG.isEnergyEnabled) display_text.push(`E ${info.energy}`);
+      if (CONFIG.isDanceEnabled) display_text.push(`D ${info.danceability}`);
+      if (CONFIG.isPopularityEnabled) display_text.push(`♥ ${info.popularity}`);
+      if (CONFIG.isYearEnabled) display_text.push(`${info.release_date}`);
+      nowPlayingWidgetdjInfoData.innerHTML = display_text.join("<br>");
+    } else {
+      nowPlayingWidgetdjInfoData.innerHTML = "";
+      getTrackInfo(id).then((info) => {
+        if (info) {
+          updateNowPlayingWidget();
+          nowPlayingObserver.observe(nowPlayingWidget, {
+            childList: true,
+            subtree: true,
+          });
+        }
+      });
+    }
     nowPlayingWidgetdjInfoData.style.fontSize = "11px";
   };
 
@@ -668,6 +752,10 @@ button.btn:hover {
   });
 
   // Observe changes in the DOM and update the now playing widget
+  const nowPlayingObserver = new MutationObserver(() => {
+    updateNowPlayingWidget();
+  });
+
   Spicetify.Player.addEventListener("songchange", () => {
     updateNowPlayingWidget();
   });
@@ -714,7 +802,6 @@ button.btn:hover {
     if (recommendations) {
       toprecommendation = recommendations.getElementsByClassName("main-trackList-trackListRow")[0];
       if (toprecommendation && !toprecommendation.isEqualNode(oldRecommendation)) {
-        console.log("recommendations found");
         updateRecommendations();
       }
     }
