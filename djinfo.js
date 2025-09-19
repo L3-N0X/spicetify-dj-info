@@ -85,7 +85,10 @@
       values[0]?.pendingProps?.children[0]?.props?.children?.props?.uri ||
       values[0]?.pendingProps?.children[0]?.props?.children?.props?.children?.props?.uri ||
       values[0]?.pendingProps?.children[0]?.props?.children?.props?.children?.props?.children?.props?.uri ||
-      values[0]?.pendingProps?.children[0]?.props?.children[0]?.props?.uri
+      values[0]?.pendingProps?.children[0]?.props?.children[0]?.props?.uri ||
+      values[0]?.pendingProps?.children?.props?.value?.item?.uri ||
+      values[0]?.pendingProps?.children?.props?.children?.props?.value?.item?.uri ||
+      values[0]?.pendingProps?.children?.props?.children?.props?.children?.props?.value?.item?.uri
     );
   }
 
@@ -502,6 +505,11 @@ button.btn:hover {
       for (const track of tracks) {
         const hasdjinfo = track.getElementsByClassName("djinfo").length > 0;
         const trackUri = getTracklistTrackUri(track);
+        if (!trackUri) {
+          // When trackUri is null, there is an issue, log an error and skip this track
+          console.error("Could not find track URI for track:", track, " this might be caused by a recent Spotify update, please report it on the GitHub page.");
+          continue;
+        }
         const isTrack = trackUri.includes("track");
 
         let djInfoColumn = track.querySelector(".djInfoList");
