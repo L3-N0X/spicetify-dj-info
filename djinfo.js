@@ -1,10 +1,10 @@
 // @ts-nocheck
 // NAME: DJ Info
 // AUTHOR: L3N0X
-// VERSION: 2.1.0
+// VERSION: 2.1.1
 // DESCRIPTION: BPM and Energy display for each song
 
-/// <reference path='../globals.d.ts' />
+/// <reference path="../globals.d.ts" />
 
 (async function djInfoList() {
   // waiting while loading
@@ -55,6 +55,7 @@
   const sixColumnGridCss = "[index] 16px [first] 5fr [var1] 3fr [var2] 2fr [var3] 2fr [last] minmax(120px,1fr)";
   const sevenColumnGridCss =
     "[index] 16px [first] 5fr [var1] 3fr [var2] 2fr [var3] minmax(120px,1fr) [var4] 2fr [last] minmax(120px,1fr)";
+  const recommendationGridCss = "[index] 3fr [first] 2fr [var1] 1fr [var2] 1fr [last] 1fr";
 
   const waitForElement = (selector) => {
     return new Promise((resolve) => {
@@ -114,16 +115,10 @@
     return ["OTHER", null];
   }
 
-  let tracklistArr = null;
-  let oldTracklistArr = null;
   let oldNowPlayingWidget = null;
   let nowPlayingWidget = null;
   let updateNowPlayingWidget = null;
-  let updateTracklist = null;
   let nowPlayingWidgetdjInfoData = null;
-  let recommendations = null;
-  let toprecommendation = null;
-  let oldRecommendations = null;
 
   function saveConfig() {
     Spicetify.LocalStorage.set("dj-info-config", JSON.stringify(CONFIG));
@@ -532,9 +527,8 @@ button.btn:hover {
      await getTrackInfoBatch(chunk);
    }
 
-   // After fetching, re-run updateTracklist to render the info
-   updateTracklist();
-   updateRecommendations();
+   // After fetching, re-run update functions to render the info
+   main();
  };
 
  const queueTrackInfo = (id, element) => {
@@ -567,28 +561,30 @@ button.btn:hover {
       djInfoColumn.style.display = "flex";
       djInfoColumn.classList.add("main-trackList-rowSectionVariable");
       djInfoColumn.classList.add("djInfoList");
+      track.insertBefore(djInfoColumn, lastColumn);
+
       if (isRecommendation) {
         djInfoColumn.style.justifyContent = "center";
         djInfoColumn.style.width = "100%";
-      }
-      track.insertBefore(djInfoColumn, lastColumn);
-
-      switch (colIndexInt) {
-        case 3:
-          track.style["grid-template-columns"] = fourColumnGridCss;
-          break;
-        case 4:
-          track.style["grid-template-columns"] = fiveColumnGridCss;
-          break;
-        case 5:
-          track.style["grid-template-columns"] = sixColumnGridCss;
-          break;
-        case 6:
-          track.style["grid-template-columns"] = sevenColumnGridCss;
-          break;
-        default:
-          if (!isRecommendation) console.log("not 3-6 columns in Tracklist");
-          break;
+        track.style["grid-template-columns"] = recommendationGridCss;
+      } else {
+        switch (colIndexInt) {
+          case 3:
+            track.style["grid-template-columns"] = fourColumnGridCss;
+            break;
+          case 4:
+            track.style["grid-template-columns"] = fiveColumnGridCss;
+            break;
+          case 5:
+            track.style["grid-template-columns"] = sixColumnGridCss;
+            break;
+          case 6:
+            track.style["grid-template-columns"] = sevenColumnGridCss;
+            break;
+          default:
+            console.log("not 3-6 columns in Tracklist");
+            break;
+        }
       }
     }
 
@@ -627,76 +623,63 @@ button.btn:hover {
   };
 
   // update Tracklist and insert DJ Info
-  updateTracklist = async () => {
+  const updateTracklist = (tracklist) => {
     if (!CONFIG.isPlaylistEnabled) return;
-    const tracklists = document.getElementsByClassName("main-trackList-indexable");
-    for (const tracklist_ of tracklists) {
-      if (!tracklist_) continue;
-      // Adding DJ Info Column Header
-      const tracklistHeader = tracklist_.querySelector(".main-trackList-trackListHeaderRow");
-      if (tracklistHeader && !tracklistHeader.querySelector(".djinfoheader")) {
-        // No tracklist header on Artist page
-        let lastColumn = tracklistHeader.querySelector(".main-trackList-rowSectionEnd");
-        let colIndexInt = parseInt(lastColumn.getAttribute("aria-colindex"));
+    if (!tracklist) return;
 
-        lastColumn.setAttribute("aria-colindex", (colIndexInt + 1).toString());
-        let headerColumn = document.createElement("div");
-        headerColumn.style.display = "flex";
-        headerColumn.classList.add("main-trackList-rowSectionVariable");
-        headerColumn.role = "columnheader";
-        tracklistHeader.insertBefore(headerColumn, lastColumn);
-        switch (colIndexInt) {
-          case 4:
-            tracklistHeader.style["grid-template-columns"] = fiveColumnGridCss;
-            break;
-          case 5:
-            tracklistHeader.style["grid-template-columns"] = sixColumnGridCss;
-            break;
-          case 6:
-            tracklistHeader.style["grid-template-columns"] = sevenColumnGridCss;
-            break;
-          default:
-            break;
-        }
+    // Adding DJ Info Column Header
+    const tracklistHeader = tracklist.querySelector(".main-trackList-trackListHeaderRow");
+    if (tracklistHeader && !tracklistHeader.querySelector(".djinfoheader")) {
+      let lastColumn = tracklistHeader.querySelector(".main-trackList-rowSectionEnd");
+      let colIndexInt = parseInt(lastColumn.getAttribute("aria-colindex"));
 
-        var btn = document.createElement("button");
-        btn.classList.add("main-trackList-column");
-        btn.classList.add("main-trackList-sortable");
-        btn.classList.add("djinfoheader");
-        var title = document.createElement("span");
-        title.classList.add("TypeElement-mesto-type");
-        title.classList.add("standalone-ellipsis-one-line");
-        title.innerHTML = "DJ Info";
-        btn.appendChild(title);
-        headerColumn.appendChild(btn);
+      lastColumn.setAttribute("aria-colindex", (colIndexInt + 1).toString());
+      let headerColumn = document.createElement("div");
+      headerColumn.style.display = "flex";
+      headerColumn.classList.add("main-trackList-rowSectionVariable");
+      headerColumn.role = "columnheader";
+      tracklistHeader.insertBefore(headerColumn, lastColumn);
+      switch (colIndexInt) {
+        case 4:
+          tracklistHeader.style["grid-template-columns"] = fiveColumnGridCss;
+          break;
+        case 5:
+          tracklistHeader.style["grid-template-columns"] = sixColumnGridCss;
+          break;
+        case 6:
+          tracklistHeader.style["grid-template-columns"] = sevenColumnGridCss;
+          break;
+        default:
+          break;
       }
 
-      const tracks = tracklist_.getElementsByClassName("main-trackList-trackListRow");
+      var btn = document.createElement("button");
+      btn.classList.add("main-trackList-column");
+      btn.classList.add("main-trackList-sortable");
+      btn.classList.add("djinfoheader");
+      var title = document.createElement("span");
+      title.classList.add("TypeElement-mesto-type");
+      title.classList.add("standalone-ellipsis-one-line");
+      title.innerHTML = "DJ Info";
+      btn.appendChild(title);
+      headerColumn.appendChild(btn);
+    }
 
-      for (const track of tracks) {
-        addInfoToTrack(track);
-        const observer = new MutationObserver(() => {
-          addInfoToTrack(track);
-        });
-        observer.observe(track, { childList: true, subtree: true });
-      }
+    const tracks = tracklist.getElementsByClassName("main-trackList-trackListRow");
+    for (const track of tracks) {
+      addInfoToTrack(track);
     }
   };
 
-  updateRecommendations = async () => {
+  const updateRecommendations = (recommendations) => {
     if (!CONFIG.isRecommendationsEnabled) return;
-    if (!recommendations) {
-      return;
-    }
-    const tracklists = recommendations.getElementsByClassName("main-trackList-trackList");
-    for (const tracklist_ of tracklists) {
-      const tracks = tracklist_.getElementsByClassName("main-trackList-trackListRow");
+    if (!recommendations) return;
+
+    const tracklist = recommendations.querySelector(".main-trackList-trackList");
+    if (tracklist) {
+      const tracks = tracklist.getElementsByClassName("main-trackList-trackListRow");
       for (const track of tracks) {
         addInfoToTrack(track, true);
-        const observer = new MutationObserver(() => {
-          addInfoToTrack(track, true);
-        });
-        observer.observe(track, { childList: true, subtree: true });
       }
     }
   };
@@ -736,78 +719,76 @@ button.btn:hover {
       getTrackInfo(id).then((info) => {
         if (info) {
           updateNowPlayingWidget();
-          nowPlayingObserver.observe(nowPlayingWidget, {
-            childList: true,
-            subtree: true,
-          });
         }
       });
     }
     nowPlayingWidgetdjInfoData.style.fontSize = "11px";
   };
 
-  // Observe changes in the DOM and update the tracklist
-  const tracklistObserver = new MutationObserver(() => {
-    updateTracklist();
-  });
-
-  // Observe changes in the DOM and update the now playing widget
-  const nowPlayingObserver = new MutationObserver(() => {
-    updateNowPlayingWidget();
-  });
-
   Spicetify.Player.addEventListener("songchange", () => {
     updateNowPlayingWidget();
   });
 
-  const observerCallback = async () => {
-    oldTracklistArr = tracklistArr;
-    tracklistArr = document.getElementsByClassName("main-trackList-indexable");
-    var i = 0;
-    for (tracklist of tracklistArr) {
-      i++;
-      if (tracklist && !tracklist.isEqualNode(oldTracklistArr[i])) {
-        if (oldTracklistArr[i]) {
-          tracklistObserver.disconnect();
-        }
-        [pageType, id] = getPageType();
-        updateTracklist();
-        tracklistObserver.observe(tracklist, {
-          childList: true,
-          subtree: true,
-        });
+  const observedTracklists = new WeakSet();
+
+  function observeTracklist(tracklist, isRecommendation = false) {
+    const updater = () => {
+      if (isRecommendation) {
+        updateRecommendations(tracklist);
+      } else {
+        updateTracklist(tracklist);
       }
+    };
+
+    if (observedTracklists.has(tracklist)) {
+      updater();
+      return;
     }
 
+    const observer = new MutationObserver(updater);
+    observer.observe(tracklist, { childList: true, subtree: true });
+    observedTracklists.add(tracklist);
+    updater();
+  }
+
+  function main() {
+    // For regular playlists
+    const tracklists = document.querySelectorAll(".main-trackList-indexable");
+    tracklists.forEach(tracklist => observeTracklist(tracklist, false));
+
+    // For recommendations
+    const recommendationsContainer = document.querySelector('[data-testid="recommended-track"]');
+    if (recommendationsContainer) {
+      observeTracklist(recommendationsContainer, true);
+    }
+
+    // For Now Playing bar
     oldNowPlayingWidget = nowPlayingWidget;
     nowPlayingWidget = document.querySelector(".main-nowPlayingWidget-nowPlaying");
     if (nowPlayingWidget && !nowPlayingWidget.isEqualNode(oldNowPlayingWidget)) {
-      nowPlayingWidgetdjInfoData = document.createElement("p");
-      nowPlayingWidgetdjInfoData.style.marginLeft = "4px";
-      nowPlayingWidgetdjInfoData.style.marginRight = "4px";
-      nowPlayingWidgetdjInfoData.style.minWidth = "34px";
-      nowPlayingWidgetdjInfoData.style.fontSize = "11px";
-      nowPlayingWidgetdjInfoData.style.textAlign = "center";
-      const trackInfo = await waitForElement(".main-nowPlayingWidget-nowPlaying .main-trackInfo-container");
-      if (CONFIG.isLeftPlayingEnabled) {
-        nowPlayingWidget.insertBefore(nowPlayingWidgetdjInfoData, trackInfo);
-      } else {
-        trackInfo.after(nowPlayingWidgetdjInfoData);
+      if (!nowPlayingWidget.querySelector(".dj-info-now-playing")) {
+        nowPlayingWidgetdjInfoData = document.createElement("p");
+        nowPlayingWidgetdjInfoData.classList.add("dj-info-now-playing");
+        nowPlayingWidgetdjInfoData.style.marginLeft = "4px";
+        nowPlayingWidgetdjInfoData.style.marginRight = "4px";
+        nowPlayingWidgetdjInfoData.style.minWidth = "34px";
+        nowPlayingWidgetdjInfoData.style.fontSize = "11px";
+        nowPlayingWidgetdjInfoData.style.textAlign = "center";
+        const trackInfo = nowPlayingWidget.querySelector(".main-trackInfo-container");
+        if (trackInfo) {
+          if (CONFIG.isLeftPlayingEnabled) {
+            trackInfo.before(nowPlayingWidgetdjInfoData);
+          } else {
+            trackInfo.after(nowPlayingWidgetdjInfoData);
+          }
+        }
+        updateNowPlayingWidget();
       }
-      updateNowPlayingWidget();
     }
+  }
 
-    oldRecommendation = toprecommendation;
-    recommendations = document.getElementsByClassName("playlist-playlist-recommendedTrackList")[0];
-    if (recommendations) {
-      toprecommendation = recommendations.getElementsByClassName("main-trackList-trackListRow")[0];
-      if (toprecommendation && !toprecommendation.isEqualNode(oldRecommendation)) {
-        updateRecommendations();
-      }
-    }
-  };
-  const observer = new MutationObserver(observerCallback);
-  await observerCallback();
+  const observer = new MutationObserver(main);
+  main();
   observer.observe(document.body, {
     childList: true,
     subtree: true,
