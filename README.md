@@ -90,6 +90,7 @@ To toggle the visibility of DJ information, follow these steps:
 - Fixed the styles in the recommended songs section
 
 ### V 2.1.0
+
 - Added the option to see DJ info in the recommended songs section
 - Fixed a bug where the DJ info would not show up in the Discography section ([#2](https://github.com/L3-N0X/spicetify-dj-info/issues/2))
 - Fixed a bug in the queue ([#9](https://github.com/L3-N0X/spicetify-dj-info/issues/9))
