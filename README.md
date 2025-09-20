@@ -17,6 +17,7 @@ Welcome to the Spicetify DJ Info Extension! This extension enhances your Spiceti
 ## 💻 Installation
 
 Copy `djinfo.js` into your [Spicetify](https://github.com/spicetify/spicetify-cli) extensions directory:
+
 | **Platform** | **Path**                                                                             |
 | ------------ | ------------------------------------------------------------------------------------ |
 | **Linux**    | `~/.config/spicetify/Extensions` or `$XDG_CONFIG_HOME/.config/spicetify/Extensions/` |
@@ -84,6 +85,16 @@ To toggle the visibility of DJ information, follow these steps:
 5. Click on Apply Changes to make your settings visible
 
 ## 📜 Changelog
+
+### V 2.2.1
+
+- Now finally works correctly in recommendations
+- Cache was improved by far
+- Data is fetched in batches, fixing missing data because of rate limits
+- Working again with new Playlist UI
+- Improved loading performance
+- Improved Error logging
+- Bugfixes for #16, #23, #24 and #25
 
 ### V 2.1.1
 
