@@ -1,7 +1,7 @@
 // @ts-nocheck
 // NAME: DJ Info
 // AUTHOR: L3N0X
-// VERSION: 2.1.1
+// VERSION: 2.2.0
 // DESCRIPTION: BPM and Energy display for each song
 
 /// <reference path="../globals.d.ts" />
