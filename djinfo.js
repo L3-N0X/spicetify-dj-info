@@ -50,16 +50,12 @@
   };
 
   // initialize css grid changes
-  const fourColumnGridCss =
-    "grid-template-columns: [first] 4fr [var1] 2fr [var2] 2fr [last] minmax(120px,1fr) !important";
-  const fiveColumnGridCss =
-    "grid-template-columns: [index] 16px [first] 3fr [var1] 2fr [var2] 2fr [last] minmax(120px,1fr) !important";
-  const sixColumnGridCss =
-    "grid-template-columns: [index] 16px [first] 5fr [var1] 3fr [var2] 2fr [var3] 2fr [last] minmax(120px,1fr) !important";
+  const fourColumnGridCss = "[first] 4fr [var1] 2fr [var2] 2fr [last] minmax(120px,1fr)";
+  const fiveColumnGridCss = "[index] 16px [first] 3fr [var1] 2fr [var2] 2fr [last] minmax(120px,1fr)";
+  const sixColumnGridCss = "[index] 16px [first] 5fr [var1] 3fr [var2] 2fr [var3] 2fr [last] minmax(120px,1fr)";
   const sevenColumnGridCss =
     "[index] 16px [first] 5fr [var1] 3fr [var2] 2fr [var3] minmax(120px,1fr) [var4] 2fr [last] minmax(120px,1fr)";
   const recommendationGridCss = "[index] 3fr [first] 2fr [var1] 1fr [var2] 1fr [last] 1fr";
-
 
   const waitForElement = (selector) => {
     return new Promise((resolve) => {
@@ -423,8 +419,7 @@ button.btn:hover {
       default:
         break;
     }
-    if (CONFIG.isCamelotEnabled && CONFIG.isKeyEnabled)
-      return `${keyInStandard}&nbsp;(${keyInCamelot})`; // if both are enabled return both
+    if (CONFIG.isCamelotEnabled && CONFIG.isKeyEnabled) return `${keyInStandard}&nbsp;(${keyInCamelot})`; // if both are enabled return both
     if (CONFIG.isCamelotEnabled) return keyInCamelot; // else if only camelot is enabled return camelot
     return keyInStandard; // else return key in standard notation
   };
