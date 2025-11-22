@@ -436,7 +436,7 @@ button.btn:hover {
       this.release_date = resTrack.album.release_date.split("-")[0];
     }
   };
- 
+
   let trackInfoQueue = [];
   let trackInfoTimeout = null;
   let trackDb = {};
@@ -516,33 +516,33 @@ button.btn:hover {
     });
   };
 
- const processTrackInfoQueue = async () => {
-   if (trackInfoQueue.length === 0) return;
+  const processTrackInfoQueue = async () => {
+    if (trackInfoQueue.length === 0) return;
 
-   const itemsToProcess = [...trackInfoQueue];
-   trackInfoQueue = [];
+    const itemsToProcess = [...trackInfoQueue];
+    trackInfoQueue = [];
 
-   const ids = [...new Set(itemsToProcess.map((item) => item.id))];
+    const ids = [...new Set(itemsToProcess.map((item) => item.id))];
 
-   const CHUNK_SIZE = 100;
-   for (let i = 0; i < ids.length; i += CHUNK_SIZE) {
-     const chunk = ids.slice(i, i + CHUNK_SIZE);
-     await getTrackInfoBatch(chunk);
-   }
+    const CHUNK_SIZE = 100;
+    for (let i = 0; i < ids.length; i += CHUNK_SIZE) {
+      const chunk = ids.slice(i, i + CHUNK_SIZE);
+      await getTrackInfoBatch(chunk);
+    }
 
-   // After fetching, re-run update functions to render the info
-   main();
- };
+    // After fetching, re-run update functions to render the info
+    main();
+  };
 
- const queueTrackInfo = (id, element) => {
-   const existing = trackInfoQueue.find((item) => item.id === id);
-   if (!existing) {
-     trackInfoQueue.push({ id, element });
-   }
+  const queueTrackInfo = (id, element) => {
+  const existing = trackInfoQueue.find((item) => item.id === id);
+  if (!existing) {
+    trackInfoQueue.push({ id, element });
+  }
 
-   clearTimeout(trackInfoTimeout);
-   trackInfoTimeout = setTimeout(processTrackInfoQueue, 100);
- };
+  clearTimeout(trackInfoTimeout);
+  trackInfoTimeout = setTimeout(processTrackInfoQueue, 100);
+  };
 
   const addInfoToTrack = (track, isRecommendation = false) => {
     const hasdjinfo = track.getElementsByClassName("djinfo").length > 0;
