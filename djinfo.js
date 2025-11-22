@@ -602,11 +602,11 @@ button.btn:hover {
       const parsedInfo = info;
       const keyInNotation = getKeyInNotation(parsedInfo.key, parsedInfo.mode);
       let display_text = [];
-      if (CONFIG.isKeyEnabled || CONFIG.isCamelotEnabled) display_text.push(`${keyInNotation}`);
-      if (CONFIG.isBPMEnabled) display_text.push(`${parsedInfo.tempo} ♫`);
-      if (CONFIG.isEnergyEnabled) display_text.push(`E ${parsedInfo.energy}`);
-      if (CONFIG.isDanceEnabled) display_text.push(`D ${parsedInfo.danceability}`);
-      if (CONFIG.isPopularityEnabled) display_text.push(`♥ ${parsedInfo.popularity}`);
+      if (CONFIG.isKeyEnabled || CONFIG.isCamelotEnabled) display_text.push(`${String(getKeyInNotation(info.key, info.mode)).padStart(3, '\u00A0')}`);
+      if (CONFIG.isBPMEnabled) display_text.push(`♫ ${String(info.tempo).padStart(3, '\u00A0')}`);
+      if (CONFIG.isEnergyEnabled) display_text.push(`E ${String(info.energy).padStart(3, '\u00A0')}`);
+      if (CONFIG.isDanceEnabled) display_text.push(`D ${String(info.danceability).padStart(3, '\u00A0')}`);
+      if (CONFIG.isPopularityEnabled) display_text.push(`♥ ${String(info.popularity).padEnd(3, '\u00A0')}`);
       if (CONFIG.isYearEnabled) display_text.push(`${parsedInfo.release_date}`);
       display_text = display_text.join(" | ");
 
@@ -711,11 +711,11 @@ button.btn:hover {
     const info = await getTrackInfo(id);
     if (info) {
       const display_text = [];
-      if (CONFIG.isKeyEnabled || CONFIG.isCamelotEnabled) display_text.push(`${getKeyInNotation(info.key, info.mode)}`);
-      if (CONFIG.isBPMEnabled) display_text.push(`${info.tempo} ♫`);
-      if (CONFIG.isEnergyEnabled) display_text.push(`E ${info.energy}`);
-      if (CONFIG.isDanceEnabled) display_text.push(`D ${info.danceability}`);
-      if (CONFIG.isPopularityEnabled) display_text.push(`♥ ${info.popularity}`);
+      if (CONFIG.isKeyEnabled || CONFIG.isCamelotEnabled) display_text.push(`𝄞 ${String(getKeyInNotation(info.key, info.mode)).padStart(3, '\u00A0')}`);
+      if (CONFIG.isBPMEnabled) display_text.push(`♫ ${String(info.tempo).padStart(3, '\u00A0')}`);
+      if (CONFIG.isEnergyEnabled) display_text.push(`E ${String(info.energy).padStart(3, '\u00A0')}`);
+      if (CONFIG.isDanceEnabled) display_text.push(`D ${String(info.danceability).padStart(3, '\u00A0')}`);
+      if (CONFIG.isPopularityEnabled) display_text.push(`♥ ${String(info.popularity).padStart(3, '\u00A0')}`);
       if (CONFIG.isYearEnabled) display_text.push(`${info.release_date}`);
       nowPlayingWidgetdjInfoData.innerHTML = display_text.join("<br>");
     } else {
