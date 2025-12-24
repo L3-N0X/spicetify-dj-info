@@ -2,7 +2,7 @@
 // NAME: DJ Info
 // AUTHOR: L3N0X
 // VERSION: 2.1.1
-// DESCRIPTION: BPM and Energy display for each song
+// DESCRIPTION: BPM for each song
 
 /// <reference path='../globals.d.ts' />
 
@@ -31,8 +31,6 @@
       isKeyEnabled: false,
       isCamelotEnabled: true,
       isPopularityEnabled: true,
-      isEnergyEnabled: true,
-      isDanceEnabled: false,
       isYearEnabled: false,
     };
   }
@@ -285,14 +283,6 @@ button.btn:hover {
         field: "isPopularityEnabled",
       }),
       react.createElement(ConfigItem, {
-        name: "Enable Energy",
-        field: "isEnergyEnabled",
-      }),
-      react.createElement(ConfigItem, {
-        name: "Enable Danceability",
-        field: "isDanceEnabled",
-      }),
-      react.createElement(ConfigItem, {
         name: "Enable Year",
         field: "isYearEnabled",
       }),
@@ -437,27 +427,72 @@ button.btn:hover {
   var djTrackInfo = class {
     // Class for DJ Info in local storage
     constructor(res, resTrack) {
-      this.key = res.key;
-      this.mode = res.mode;
-      this.tempo = Math.round(res.tempo);
-      this.energy = Math.round(100 * res.energy);
-      this.danceability = Math.round(100 * res.danceability);
-      this.popularity = resTrack.popularity;
-      this.release_date = resTrack.album.release_date.split("-")[0];
+      if ((res.code < 200 && res.code > 300)) {
+        console.log("Error: " + res.code);
+        return;
+      }
+
+      this.key = res.track.key;
+      this.mode = res.track.mode;
+      this.tempo = Math.round(res.track.tempo);
+      this.popularity = res.track.popularity;
+      // this.release_date = res.album.release_date.split("-")[0];
     }
   };
 
-  getTrackInfo = async (id) => {
-    // get Track Info from local storage or request
-    const djTrackInfoFromLocal = localStorage.getItem("djinfo-" + id);
-    if (djTrackInfoFromLocal != null) {
-      return JSON.parse(djTrackInfoFromLocal);
+  const TRACK_INFO_MIN_INTERVAL_MS = 500;
+
+  // Simple serialized rate limiter to avoid hammering Spotify endpoints.
+  const rateLimit = (fn, minIntervalMs) => {
+    let lastRunAt = 0;
+    let chain = Promise.resolve();
+    return (...args) => {
+      const run = async () => {
+        const now = Date.now();
+        const waitMs = Math.max(0, minIntervalMs - (now - lastRunAt));
+        if (waitMs) {
+          await new Promise((resolve) => setTimeout(resolve, waitMs));
+        }
+        lastRunAt = Date.now();
+        return fn(...args);
+      };
+      const scheduled = chain.then(run, run);
+      chain = scheduled.catch(() => {});
+      return scheduled;
+    };
+  };
+
+  const getTrackInfoFromApi = rateLimit(async (id) => {
+    // Use Spotify's internal audio-features endpoint instead of the deprecated public API.
+    var audioRes = null;
+    try {
+      audioRes = await Spicetify.getAudioData("spotify:track:" + id);
+    } catch (error) {
+      console.log("DJ Info: Could not get audio features for track id " + id);
+      audioRes = null;
     }
-    var res = await CosmosAsync.get("https://api.spotify.com/v1/audio-features/" + id);
-    var resTrack = await CosmosAsync.get("https://api.spotify.com/v1/tracks/" + id);
-    var info = new djTrackInfo(res, resTrack);
+
+    var res = (audioRes && audioRes.audio_features && audioRes.audio_features[0]) || audioRes;
+    // I had to remove energy and danceability because I haven't found a way to get them from the internal API.
+    // Maybe I just had a bad luck with my test tracks.
+
+    // var resTrack = await CosmosAsync.get("https://api.spotify.com/v1/tracks/" + id);
+    // if (resTrack == undefined) {
+    //   console.log("DJ Info: Could not get track info for track id " + id);
+    // }
+
+    var info = new djTrackInfo(res, null);
     localStorage.setItem("djinfo-" + id, JSON.stringify(info));
     return info;
+  }, TRACK_INFO_MIN_INTERVAL_MS);
+
+  const getTrackInfo = async (id) => {
+    // get Track Info from local storage or request
+    const djTrackInfoFromLocal = localStorage.getItem("djinfo-" + id);
+    if ((djTrackInfoFromLocal != null) && (JSON.parse(djTrackInfoFromLocal).key != null)) {
+      return JSON.parse(djTrackInfoFromLocal);
+    }
+    return getTrackInfoFromApi(id);
   };
 
   // update Tracklist and insert DJ Info
@@ -554,8 +589,6 @@ button.btn:hover {
           display_text = [];
           if (CONFIG.isKeyEnabled || CONFIG.isCamelotEnabled) display_text.push(`${keyInNotation}`);
           if (CONFIG.isBPMEnabled) display_text.push(`${info.tempo} ♫`);
-          if (CONFIG.isEnergyEnabled) display_text.push(`E ${info.energy}`);
-          if (CONFIG.isDanceEnabled) display_text.push(`D ${info.danceability}`);
           if (CONFIG.isPopularityEnabled) display_text.push(`♥ ${info.popularity}`);
           if (CONFIG.isYearEnabled) display_text.push(`${info.release_date}`);
           display_text = display_text.join(" | ");
@@ -621,8 +654,6 @@ button.btn:hover {
           display_text = [];
           if (CONFIG.isKeyEnabled || CONFIG.isCamelotEnabled) display_text.push(`${keyInNotation}`);
           if (CONFIG.isBPMEnabled) display_text.push(`${info.tempo} ♫`);
-          if (CONFIG.isEnergyEnabled) display_text.push(`E ${info.energy}`);
-          if (CONFIG.isDanceEnabled) display_text.push(`D ${info.danceability}`);
           if (CONFIG.isPopularityEnabled) display_text.push(`♥ ${info.popularity}`);
           if (CONFIG.isYearEnabled) display_text.push(`${info.release_date}`);
           display_text = display_text.join(" | ");
@@ -655,8 +686,6 @@ button.btn:hover {
     if (CONFIG.isKeyEnabled || CONFIG.isCamelotEnabled)
       display_text.push(`${getKeyInNotation(info.key, info.mode)}`);
     if (CONFIG.isBPMEnabled) display_text.push(`${info.tempo} ♫`);
-    if (CONFIG.isEnergyEnabled) display_text.push(`E ${info.energy}`);
-    if (CONFIG.isDanceEnabled) display_text.push(`D ${info.danceability}`);
     if (CONFIG.isPopularityEnabled) display_text.push(`♥ ${info.popularity}`);
     if (CONFIG.isYearEnabled) display_text.push(`${info.release_date}`);
     display_text = display_text.join("<br>");
