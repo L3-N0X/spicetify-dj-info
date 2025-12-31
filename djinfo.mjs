@@ -8,6 +8,60 @@
 
 import "./node_modules/protobufjs/dist/light/protobuf.min.js";
 
+const extendedMetadataJsonDescriptor = {
+  nested: {
+    Message: {
+      fields: {
+        header: {
+          type: "Header",
+          id: 1
+        },
+        request: {
+          type: "Request",
+          id: 2,
+          rule: "repeated"
+        },
+      }
+    },
+    Header: {
+      fields: {
+        country: {
+          type: "string",
+          id: 1
+        },
+        catalogue: {
+          type: "string",
+          id: 2
+        },
+        task_id: {
+          type: "bytes",
+          id: 3
+        }
+      }
+    },
+    Request: {
+      fields: {
+        entity_uri: {
+          type: "string",
+          id: 1
+        },
+        query: {
+          type: "Query",
+          id: 2
+        }
+      }
+    },
+    Query: {
+      fields: {
+        extension_kind: {
+          type: "uint32",
+          id: 1
+        }
+      }
+    }
+  }
+}
+
 const audioFeaturesJsonDescriptor = {
   nested: {
     Message: {
@@ -18,13 +72,13 @@ const audioFeaturesJsonDescriptor = {
         },
         extension_kind: {
           type: "uint32",
-          id: 2,
+          id: 2
         },
         response: {
           type: "Response",
           id: 3,
-          rule: "repeated",
-        },
+          rule: "repeated"
+        }
       }
     },
     Header: {
@@ -33,14 +87,14 @@ const audioFeaturesJsonDescriptor = {
           type: "uint32",
           id: 1
         },
-        idk1: { // ttl?
+        cache_ttl: {
           type: "uint32",
           id: 2
         },
-        idk2: {
+        offline_ttl: {
           type: "uint32",
           id: 3
-        },
+        }
       }
     },
     Response: {
@@ -71,19 +125,19 @@ const audioFeaturesJsonDescriptor = {
           id: 2,
           rule: "optional"
         },
-        idk: {
-          type: "uint32",
+        locale: {
+          type: "string",
           id: 3,
           rule: "optional"
         },
-        idk1: {
+        cache_ttl: {
           type: "uint32",
           id: 4
         },
-        idk2: {
+        offline_ttl: {
           type: "uint32",
           id: 5
-        },
+        }
       }
     },
     AudioAttributesWrapper: {
@@ -123,7 +177,7 @@ const audioFeaturesJsonDescriptor = {
         camelot: {
           type: "CamelotKey",
           id: 3
-        },
+        }
       }
     },
     CamelotKey: {
@@ -141,8 +195,8 @@ const audioFeaturesJsonDescriptor = {
   }
 }
 
-const root = protobuf.Root.fromJSON(audioFeaturesJsonDescriptor);
-const Message = root.lookup("Message");
+const extendedMetadataRequest = protobuf.Root.fromJSON(extendedMetadataJsonDescriptor).lookup("Message");
+const audioFeaturesResponse = protobuf.Root.fromJSON(audioFeaturesJsonDescriptor).lookup("Message");
 
 (async function djInfoList() {
   // waiting while loading
@@ -614,16 +668,18 @@ button.btn:hover {
   cleanupOldStorage();
 
   const getFeatures = async (ids) => {
-    const header = Uint8Array.fromHex("0a1f0a02555312077072656d69756d1a10");
-    const etag = new Uint8Array(16);
-    crypto.getRandomValues(etag);
-    const query = Uint8Array.fromHex("122b0a2473706f746966793a747261636b3a00000000000000000000000000000000000000000000120308de01");
-    const payload = new Uint8Array(33 + 45 * ids.length);
-    payload.set(header);
-    for (let i = 0, j = 33; i < ids.length; i++, j+=45) {
-      query.set(new TextEncoder().encode(ids[i]), 18);
-      payload.set(query, j);
-    }
+    const task_id = new Uint8Array(16);
+    crypto.getRandomValues(task_id);
+    const payload = extendedMetadataRequest.encode({
+      header: {
+        country: "US",
+        catalogue: "premium",
+        task_id: task_id
+      },
+      request: ids.map((id) => (
+        { entity_uri: `spotify:track:${id}`, query: { extension_kind: 222 } }
+      ))
+    }).finish();
 
     const resp = await fetch("https://spclient.wg.spotify.com/extended-metadata/v0/extended-metadata",{
       method: "POST",
@@ -640,7 +696,7 @@ button.btn:hover {
 
     let msg;
     try {
-      msg = Message.decode(buf);
+      msg = audioFeaturesResponse.decode(buf);
     } catch {
       debugger;
     }
@@ -667,7 +723,7 @@ button.btn:hover {
       }
       return v.toString(16).padStart(32, "0");
     };
-    const tracks = await Promise.all(
+    const tracks = await Promise.allSettled(
       ids.map(async (id) => {
         const resp = await fetch(
           `https://spclient.wg.spotify.com/metadata/4/track/${spotifyHex(id)}?market=from_token`,
@@ -682,21 +738,25 @@ button.btn:hover {
             timeout: 1000 * 15
           },
         );
-        let json;
         if (resp.headers.get("Content-Type").startsWith("application/json")) {
-          json = await resp.json();
-        } else {
-          json = { album: { date: { year: 0 } } };
+          const json = await resp.json();
+          return {
+            id: id,
+            popularity: 0,
+            album: {
+              release_date: `${json.album.date.year}`
+            }
+          }
         }
         return {
           id: id,
           popularity: 0,
           album: {
-            release_date: `${json.album.date.year}`
+            release_date: "0"
           }
         }
       })
-    );
+    ).then((values) => values.filter(v => v.status == "fulfilled").map(v => v.value));
     return { tracks };
   }
 
