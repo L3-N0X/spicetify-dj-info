@@ -24,6 +24,11 @@ Copy `djinfo.js` into your [Spicetify](https://github.com/spicetify/spicetify-cl
 | **MacOS**    | `~/.config/spicetify/Extensions` or `$SPICETIFY_CONFIG/Extensions`                   |
 | **Windows**  | `%appdata%/spicetify/Extensions/`                                                    |
 
+Also, in the extensions directory, run
+```bash
+npm install protobufjs
+```
+
 After putting the extension file into the correct folder, run the following command to install the extension:
 
 ```bash

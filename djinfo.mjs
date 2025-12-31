@@ -6,6 +6,144 @@
 
 /// <reference path="../globals.d.ts" />
 
+import "./node_modules/protobufjs/dist/light/protobuf.min.js";
+
+const audioFeaturesJsonDescriptor = {
+  nested: {
+    Message: {
+      fields: {
+        header: {
+          type: "Header",
+          id: 1,
+        },
+        extension_kind: {
+          type: "uint32",
+          id: 2,
+        },
+        response: {
+          type: "Response",
+          id: 3,
+          rule: "repeated",
+        },
+      }
+    },
+    Header: {
+      fields: {
+        status: {
+          type: "uint32",
+          id: 1
+        },
+        idk1: { // ttl?
+          type: "uint32",
+          id: 2
+        },
+        idk2: {
+          type: "uint32",
+          id: 3
+        },
+      }
+    },
+    Response: {
+      fields: {
+        info: {
+          type: "ResponseInfo",
+          id: 1
+        },
+        track: {
+          type: "string",
+          id: 2
+        },
+        attributes: {
+          type: "AudioAttributesWrapper",
+          id: 3,
+          rule: "optional"
+        }
+      }
+    },
+    ResponseInfo: {
+      fields: {
+        status: {
+          type: "uint32",
+          id: 1
+        },
+        etag: {
+          type: "string",
+          id: 2,
+          rule: "optional"
+        },
+        idk: {
+          type: "uint32",
+          id: 3,
+          rule: "optional"
+        },
+        idk1: {
+          type: "uint32",
+          id: 4
+        },
+        idk2: {
+          type: "uint32",
+          id: 5
+        },
+      }
+    },
+    AudioAttributesWrapper: {
+      fields: {
+        typestr: {
+          type: "string",
+          id: 1
+        },
+        attributes: {
+          type: "AudioAttributes",
+          id: 2
+        }
+      }
+    },
+    AudioAttributes: {
+      fields: {
+        bpm: {
+          type: "double",
+          id: 1
+        },
+        key: {
+          type: "Key",
+          id: 2
+        }
+      }
+    },
+    Key: {
+      fields: {
+        key: {
+          type: "string",
+          id: 1
+        },
+        majorMinor: {
+          type: "uint32",
+          id: 2
+        },
+        camelot: {
+          type: "CamelotKey",
+          id: 3
+        },
+      }
+    },
+    CamelotKey: {
+      fields: {
+        key: {
+          type: "string",
+          id: 1
+        },
+        backgroundColor: {
+          type: "string",
+          id: 2
+        }
+      }
+    }
+  }
+}
+
+const root = protobuf.Root.fromJSON(audioFeaturesJsonDescriptor);
+const Message = root.lookup("Message");
+
 (async function djInfoList() {
   // waiting while loading
   while (!Spicetify.showNotification) {
@@ -30,8 +168,8 @@
       isBPMEnabled: true,
       isKeyEnabled: false,
       isCamelotEnabled: true,
-      isPopularityEnabled: true,
-      isEnergyEnabled: true,
+      isPopularityEnabled: false,
+      isEnergyEnabled: false,
       isDanceEnabled: false,
       isYearEnabled: false,
     };
@@ -304,7 +442,7 @@ button.btn:hover {
   ).register();
 
   // Get the Key in the right notation from /audiofeatures response
-  getKeyInNotation = (key, mode) => {
+  const getKeyInNotation = (key, mode) => {
     var keyInCamelot = "XX";
     var keyInStandard = "XX";
     switch (mode) {
@@ -475,26 +613,67 @@ button.btn:hover {
 
   cleanupOldStorage();
 
-  getTrackInfo = async (id) => {
+  const getFeatures = async (ids) => {
+    const header = Uint8Array.fromHex("0a1f0a02555312077072656d69756d1a10");
+    const etag = new Uint8Array(16);
+    crypto.getRandomValues(etag);
+    const query = Uint8Array.fromHex("122b0a2473706f746966793a747261636b3a00000000000000000000000000000000000000000000120308de01");
+    const payload = new Uint8Array(33 + 45 * ids.length);
+    payload.set(header);
+    for (let i = 0, j = 33; i < ids.length; i++, j+=45) {
+      query.set(new TextEncoder().encode(ids[i]), 18);
+      payload.set(query, j);
+    }
+
+    const resp = await fetch("https://spclient.wg.spotify.com/extended-metadata/v0/extended-metadata",{
+      method: "POST",
+      body: payload,
+      headers: {
+        "Content-Type": "application/protobuf",
+        "Authorization": `Bearer ${Spicetify.Platform.AuthorizationAPI.getState().token.accessToken}`,
+        "Spotify-App-Version": Spicetify.Platform.version,
+        "App-Platform": Spicetify.Platform.PlatformData.app_platform,
+      },
+      timeout: 1000 * 15
+    });
+    const buf = new Uint8Array(await resp.arrayBuffer());
+
+    let msg;
+    try {
+      msg = Message.decode(buf);
+    } catch {
+      debugger;
+    }
+
+    return {
+      audio_features: msg.response.map((resp) => {
+        if (!resp.attributes) return null;
+        return {
+          id: resp.track.split(":")[2],
+          tempo: resp.attributes.attributes.bpm,
+          key: "C C# D D# E F F# G G# A A# B".split(" ").indexOf(resp.attributes.attributes.key.key),
+          mode: resp.attributes.attributes.key.majorMinor - 1,
+        }
+      })
+    }
+  };
+
+  const getTrackInfo = async (id) => {
     // get Track Info from local storage or request
     if (trackDb[id]) {
       return trackDb[id];
     }
-    var res = await CosmosAsync.get("https://api.spotify.com/v1/audio-features/" + id);
-    var resTrack = await CosmosAsync.get("https://api.spotify.com/v1/tracks/" + id);
-    var info = new djTrackInfo(res, resTrack);
-    trackDb[id] = info;
-    saveTrackDb();
+    const [info] = await getTrackInfoBatch([id]);
     return info;
   };
 
-    getTrackInfoBatch = async (ids) => {
+  const getTrackInfoBatch = async (ids) => {
     const idsToFetch = ids.filter((id) => !trackDb[id]);
 
     if (idsToFetch.length > 0) {
       try {
-        const res = await CosmosAsync.get(`https://api.spotify.com/v1/audio-features?ids=${idsToFetch.join(",")}`);
-        const resTrack = await CosmosAsync.get(`https://api.spotify.com/v1/tracks?ids=${idsToFetch.join(",")}`);
+        const res = await getFeatures(idsToFetch);
+        const resTrack = { tracks: idsToFetch.map((id) => ({ id: id, popularity: 0, album: { release_date: "" } })) };
 
         res.audio_features.forEach((track, i) => {
           if (track) {
