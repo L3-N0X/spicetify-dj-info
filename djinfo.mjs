@@ -171,7 +171,7 @@ const Message = root.lookup("Message");
       isPopularityEnabled: false,
       isEnergyEnabled: false,
       isDanceEnabled: false,
-      isYearEnabled: false,
+      isYearEnabled: true,
     };
   }
 
@@ -658,6 +658,48 @@ button.btn:hover {
     }
   };
 
+  const getTrackFeatures = async (ids) => {
+    const spotifyHex = (id) => {
+      const alpha = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+      let v = 0n;
+      for (let c of id) {
+        v = v * 62n + BigInt(alpha.indexOf(c));
+      }
+      return v.toString(16).padStart(32, "0");
+    };
+    const tracks = await Promise.all(
+      ids.map(async (id) => {
+        const resp = await fetch(
+          `https://spclient.wg.spotify.com/metadata/4/track/${spotifyHex(id)}?market=from_token`,
+          {
+            headers: {
+              "Accept": "application/json",
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${Spicetify.Platform.AuthorizationAPI.getState().token.accessToken}`,
+              "Spotify-App-Version": Spicetify.Platform.version,
+              "App-Platform": Spicetify.Platform.PlatformData.app_platform,
+            },
+            timeout: 1000 * 15
+          },
+        );
+        let json;
+        if (resp.headers.get("Content-Type").startsWith("application/json")) {
+          json = await resp.json();
+        } else {
+          json = { album: { date: { year: 0 } } };
+        }
+        return {
+          id: id,
+          popularity: 0,
+          album: {
+            release_date: `${json.album.date.year}`
+          }
+        }
+      })
+    );
+    return { tracks };
+  }
+
   const getTrackInfo = async (id) => {
     // get Track Info from local storage or request
     if (trackDb[id]) {
@@ -673,7 +715,7 @@ button.btn:hover {
     if (idsToFetch.length > 0) {
       try {
         const res = await getFeatures(idsToFetch);
-        const resTrack = { tracks: idsToFetch.map((id) => ({ id: id, popularity: 0, album: { release_date: "" } })) };
+        const resTrack = await getTrackFeatures(idsToFetch);
 
         res.audio_features.forEach((track, i) => {
           if (track) {
