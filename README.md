@@ -16,7 +16,7 @@ Welcome to the Spicetify DJ Info Extension! This extension enhances your Spiceti
 
 ## 💻 Installation
 
-Copy `djinfo.js` into your [Spicetify](https://github.com/spicetify/spicetify-cli) extensions directory:
+Copy `djinfo.mjs` into your [Spicetify](https://github.com/spicetify/spicetify-cli) extensions directory:
 
 | **Platform** | **Path**                                                                             |
 | ------------ | ------------------------------------------------------------------------------------ |
@@ -32,7 +32,7 @@ npm install protobufjs
 After putting the extension file into the correct folder, run the following command to install the extension:
 
 ```bash
-spicetify config extensions djinfo.js
+spicetify config extensions djinfo.mjs
 spicetify apply
 ```
 
@@ -42,7 +42,7 @@ Example:
 ```ini
 [AdditionalOptions]
 ...
-extensions = autoSkipExplicit.js|shuffle+.js|trashbin.js|djinfo.js
+extensions = autoSkipExplicit.js|shuffle+.js|trashbin.js|djinfo.mjs
 ```
 
 Then run:
@@ -58,7 +58,7 @@ spicetify apply
 Run the following command to uninstall the extension (note the - on the end):
 
 ```bash
-spicetify config extensions djinfo.js-
+spicetify config extensions djinfo.mjs-
 spicetify apply
 ```
 

@@ -320,24 +320,24 @@ const trackMetadataJsonDescriptor = {
           type: "sint32",
           id: 8
         },
-        field10: { type: "bytes", id: 10, rule: "optional" },
+        external_id: { type: "bytes", id: 10, rule: "optional" },
         field11: { type: "bytes", id: 11, rule: "optional" },
         field12: { type: "bytes", id: 12, rule: "optional" },
         field13: { type: "bytes", id: 13, rule: "optional" },
         field15: { type: "bytes", id: 15, rule: "optional" },
-        field17: { type: "uint64", id: 17, rule: "optional" },
+        earliest_live_timestamp: { type: "uint64", id: 17, rule: "optional" },
         field18: { type: "uint32", id: 18, rule: "optional" },
         field21: { type: "bytes", id: 21, rule: "optional" },
-        field22: { type: "bytes", id: 22, rule: "optional" },
-        field24: { type: "bytes", id: 24, rule: "optional" },
-        field27: { type: "string", id: 27, rule: "optional" },
+        language_of_performance: { type: "string", id: 22, rule: "optional" },
+        original_audio: { type: "bytes", id: 24, rule: "optional" },
+        original_title: { type: "string", id: 27, rule: "optional" },
         field32: { type: "bytes", id: 32, rule: "optional" },
         field36: { type: "string", id: 36, rule: "optional" },
         field37: { type: "bytes", id: 37, rule: "optional" },
-        field39: { type: "bytes", id: 39, rule: "optional" },
-        field41: { type: "bytes", id: 41, rule: "optional" },
+        licensor: { type: "bytes", id: 39, rule: "optional" },
+        audio_formats: { type: "bytes", id: 41, rule: "optional" },
         field43: { type: "uint32", id: 43, rule: "optional" },
-        field44: { type: "bytes", id: 44, rule: "optional" },
+        implementation_details: { type: "bytes", id: 44, rule: "optional" },
       }
     },
     AlbumMetadata: {
@@ -365,8 +365,8 @@ const trackMetadataJsonDescriptor = {
           id: 6,
           rule: "optional"
         },
-        covers: {
-          type: "Covers",
+        cover_group: {
+          type: "CoverGroup",
           id: 17,
         },
         field25: { type: "bytes", id: 25, rule: "optional" },
@@ -401,31 +401,31 @@ const trackMetadataJsonDescriptor = {
         },
       }
     },
-    Covers: {
+    CoverGroup: {
       fields: {
-        cover: {
-          type: "Cover",
+        image: {
+          type: "Image",
           id: 1,
           rule: "repeated"
         },
       }
     },
-    Cover: {
+    Image: {
       fields: {
-        hex_id: {
+        file_id: {
           type: "bytes",
           id: 1
         },
-        index: {
+        size: {
           type: "uint32",
           id: 2
         },
         width: { // width/height might be swapped
-          type: "uint32",
+          type: "sint32",
           id: 3
         },
         height: {
-          type: "uint32",
+          type: "sint32",
           id: 4
         },
       }
