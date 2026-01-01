@@ -195,8 +195,247 @@ const audioFeaturesJsonDescriptor = {
   }
 }
 
+const trackMetadataJsonDescriptor = {
+  nested: {
+    Message: {
+      fields: {
+        header: {
+          type: "Header",
+          id: 1,
+        },
+        extension_kind: {
+          type: "uint32",
+          id: 2
+        },
+        response: {
+          type: "Response",
+          id: 3,
+          rule: "repeated"
+        }
+      }
+    },
+    Header: {
+      fields: {
+        status: {
+          type: "uint32",
+          id: 1
+        },
+        cache_ttl: {
+          type: "uint32",
+          id: 2
+        },
+        offline_ttl: {
+          type: "uint32",
+          id: 3
+        }
+      }
+    },
+    Response: {
+      fields: {
+        info: {
+          type: "ResponseInfo",
+          id: 1
+        },
+        track: {
+          type: "string",
+          id: 2
+        },
+        metadata: {
+          type: "TrackMetadataWrapper",
+          id: 3,
+          rule: "optional"
+        }
+      }
+    },
+    ResponseInfo: {
+      fields: {
+        status: {
+          type: "uint32",
+          id: 1
+        },
+        etag: {
+          type: "string",
+          id: 2,
+          rule: "optional"
+        },
+        locale: {
+          type: "string",
+          id: 3,
+          rule: "optional"
+        },
+        cache_ttl: {
+          type: "uint32",
+          id: 4
+        },
+        offline_ttl: {
+          type: "uint32",
+          id: 5
+        }
+      }
+    },
+    TrackMetadataWrapper: {
+      fields: {
+        typestr: {
+          type: "string",
+          id: 1
+        },
+        metadata: {
+          type: "TrackMetadata",
+          id: 2
+        }
+      }
+    },
+    TrackMetadata: {
+      fields: {
+        hex_id: {
+          type: "bytes",
+          id: 1
+        },
+        name: {
+          type: "string",
+          id: 2
+        },
+        album: {
+          type: "AlbumMetadata",
+          id: 3
+        },
+        artist: {
+          type: "Artist",
+          id: 4,
+          rule: "repeated"
+        },
+        track_num: {
+          type: "sint32",
+          id: 5
+        },
+        disc_num: {
+          type: "sint32",
+          id: 6
+        },
+        duration_ms: {
+          type: "sint32",
+          id: 7
+        },
+        popularity: {
+          type: "sint32",
+          id: 8
+        },
+        field10: { type: "bytes", id: 10, rule: "optional" },
+        field11: { type: "bytes", id: 11, rule: "optional" },
+        field12: { type: "bytes", id: 12, rule: "optional" },
+        field13: { type: "bytes", id: 13, rule: "optional" },
+        field15: { type: "bytes", id: 15, rule: "optional" },
+        field17: { type: "uint64", id: 17, rule: "optional" },
+        field18: { type: "uint32", id: 18, rule: "optional" },
+        field21: { type: "bytes", id: 21, rule: "optional" },
+        field22: { type: "bytes", id: 22, rule: "optional" },
+        field24: { type: "bytes", id: 24, rule: "optional" },
+        field27: { type: "string", id: 27, rule: "optional" },
+        field32: { type: "bytes", id: 32, rule: "optional" },
+        field36: { type: "string", id: 36, rule: "optional" },
+        field37: { type: "bytes", id: 37, rule: "optional" },
+        field39: { type: "bytes", id: 39, rule: "optional" },
+        field41: { type: "bytes", id: 41, rule: "optional" },
+        field43: { type: "uint32", id: 43, rule: "optional" },
+        field44: { type: "bytes", id: 44, rule: "optional" },
+      }
+    },
+    AlbumMetadata: {
+      fields: {
+        hex_id: {
+          type: "bytes",
+          id: 1
+        },
+        name: {
+          type: "string",
+          id: 2
+        },
+        artist: {
+          type: "Artist",
+          id: 3,
+          rule: "repeated"
+        },
+        label: {
+          type: "string",
+          id: 5,
+          rule: "optional"
+        },
+        release_date: {
+          type: "Date",
+          id: 6,
+          rule: "optional"
+        },
+        covers: {
+          type: "Covers",
+          id: 17,
+        },
+        field25: { type: "bytes", id: 25, rule: "optional" },
+        field37: { type: "bytes", id: 37, rule: "optional" },
+      }
+    },
+    Artist: {
+      fields: {
+        hex_id: {
+          type: "bytes",
+          id: 1
+        },
+        name: {
+          type: "string",
+          id: 2
+        },
+      }
+    },
+    Date: {
+      fields: {
+        year: {
+          type: "sint32",
+          id: 1
+        },
+        month: {
+          type: "sint32",
+          id: 2
+        },
+        day: {
+          type: "sint32",
+          id: 3
+        },
+      }
+    },
+    Covers: {
+      fields: {
+        cover: {
+          type: "Cover",
+          id: 1,
+          rule: "repeated"
+        },
+      }
+    },
+    Cover: {
+      fields: {
+        hex_id: {
+          type: "bytes",
+          id: 1
+        },
+        index: {
+          type: "uint32",
+          id: 2
+        },
+        width: { // width/height might be swapped
+          type: "uint32",
+          id: 3
+        },
+        height: {
+          type: "uint32",
+          id: 4
+        },
+      }
+    }
+  }
+}
+
 const extendedMetadataRequest = protobuf.Root.fromJSON(extendedMetadataJsonDescriptor).lookup("Message");
 const audioFeaturesResponse = protobuf.Root.fromJSON(audioFeaturesJsonDescriptor).lookup("Message");
+const trackMetadataResponse = protobuf.Root.fromJSON(trackMetadataJsonDescriptor).lookup("Message");
 
 (async function djInfoList() {
   // waiting while loading
@@ -694,12 +933,7 @@ button.btn:hover {
     });
     const buf = new Uint8Array(await resp.arrayBuffer());
 
-    let msg;
-    try {
-      msg = audioFeaturesResponse.decode(buf);
-    } catch {
-      debugger;
-    }
+    const msg = audioFeaturesResponse.decode(buf);
 
     return {
       audio_features: msg.response.map((resp) => {
@@ -715,49 +949,46 @@ button.btn:hover {
   };
 
   const getTrackFeatures = async (ids) => {
-    const spotifyHex = (id) => {
-      const alpha = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-      let v = 0n;
-      for (let c of id) {
-        v = v * 62n + BigInt(alpha.indexOf(c));
-      }
-      return v.toString(16).padStart(32, "0");
-    };
-    const tracks = await Promise.allSettled(
-      ids.map(async (id) => {
-        const resp = await fetch(
-          `https://spclient.wg.spotify.com/metadata/4/track/${spotifyHex(id)}?market=from_token`,
-          {
-            headers: {
-              "Accept": "application/json",
-              "Content-Type": "application/json",
-              "Authorization": `Bearer ${Spicetify.Platform.AuthorizationAPI.getState().token.accessToken}`,
-              "Spotify-App-Version": Spicetify.Platform.version,
-              "App-Platform": Spicetify.Platform.PlatformData.app_platform,
-            },
-            timeout: 1000 * 15
-          },
-        );
-        if (resp.headers.get("Content-Type").startsWith("application/json")) {
-          const json = await resp.json();
-          return {
-            id: id,
-            popularity: 0,
-            album: {
-              release_date: `${json.album.date.year}`
-            }
-          }
-        }
+    const task_id = new Uint8Array(16);
+    crypto.getRandomValues(task_id);
+    const payload = extendedMetadataRequest.encode({
+      header: {
+        country: "US",
+        catalogue: "premium",
+        task_id: task_id
+      },
+      request: ids.map((id) => (
+        { entity_uri: `spotify:track:${id}`, query: { extension_kind: 10 } }
+      ))
+    }).finish();
+
+    const resp = await fetch("https://spclient.wg.spotify.com/extended-metadata/v0/extended-metadata",{
+      method: "POST",
+      body: payload,
+      headers: {
+        "Content-Type": "application/protobuf",
+        "Authorization": `Bearer ${Spicetify.Platform.AuthorizationAPI.getState().token.accessToken}`,
+        "Spotify-App-Version": Spicetify.Platform.version,
+        "App-Platform": Spicetify.Platform.PlatformData.app_platform,
+      },
+      timeout: 1000 * 15
+    });
+    const buf = new Uint8Array(await resp.arrayBuffer());
+
+    const msg = trackMetadataResponse.decode(buf);
+
+    return {
+      tracks: msg.response.map((resp) => {
+        if (!resp.metadata) return null;
         return {
-          id: id,
-          popularity: 0,
+          id: resp.track.split(":")[2],
+          popularity: resp.metadata.metadata.popularity,
           album: {
-            release_date: "0"
+            release_date: `${resp.metadata.metadata.album.release_date.year}`
           }
         }
       })
-    ).then((values) => values.filter(v => v.status == "fulfilled").map(v => v.value));
-    return { tracks };
+    }
   }
 
   const getTrackInfo = async (id) => {
