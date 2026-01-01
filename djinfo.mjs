@@ -449,6 +449,18 @@ const trackMetadataResponse = protobuf.Root.fromJSON(trackMetadataJsonDescriptor
     return;
   }
 
+  const globalStyle = document.createElement("style");
+  globalStyle.innerHTML = `
+    @keyframes djInfoFadeIn {
+      from { opacity: 0; transform: translateY(5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .djinfo-animate {
+      animation: djInfoFadeIn 0.4s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+    }
+  `;
+  document.head.appendChild(globalStyle);
+
   let CONFIG;
   try {
     CONFIG = JSON.parse(Spicetify.LocalStorage.get("dj-info-config") || "error");
@@ -505,6 +517,28 @@ const trackMetadataResponse = protobuf.Root.fromJSON(trackMetadataJsonDescriptor
       });
     });
   };
+
+  const debounce = (func, wait) => {
+    let timeout;
+    return (...args) => {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => func(...args), wait);
+    };
+  };
+
+  const trackIntersectionObserver = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          const track = entry.target;
+          const isRecommendation = track.closest('[data-testid="recommended-track"]') !== null;
+          addInfoToTrack(track, isRecommendation);
+          trackIntersectionObserver.unobserve(track);
+        }
+      });
+    },
+    { rootMargin: "200px" }
+  );
 
   // Get track uri from tracklist element
   function getTracklistTrackUri(tracklistElement) {
@@ -868,7 +902,7 @@ button.btn:hover {
     }
   };
  
-  let trackInfoQueue = [];
+  const trackInfoQueue = new Map();
   let trackInfoTimeout = null;
   let trackDb = {};
 
@@ -880,8 +914,13 @@ button.btn:hover {
     }
   }
 
+  let saveTimeout = null;
   function saveTrackDb() {
-    Spicetify.LocalStorage.set("dj-info-tracks", JSON.stringify(trackDb));
+    if (saveTimeout) return;
+    saveTimeout = setTimeout(() => {
+      Spicetify.LocalStorage.set("dj-info-tracks", JSON.stringify(trackDb));
+      saveTimeout = null;
+    }, 1000);
   }
 
   // Load the DB at startup
@@ -899,9 +938,6 @@ button.btn:hover {
     if (keysToRemove.length > 0) {
       Spicetify.showNotification("Cleaned up old DJ Info tracks from local storage.");
     }
-
-    trackDb = {};
-    saveTrackDb();
   }
 
   cleanupOldStorage();
@@ -1005,14 +1041,16 @@ button.btn:hover {
 
     if (idsToFetch.length > 0) {
       try {
-        const res = await getFeatures(idsToFetch);
-        const resTrack = await getTrackFeatures(idsToFetch);
+        const [res, resTrack] = await Promise.all([
+          getFeatures(idsToFetch),
+          getTrackFeatures(idsToFetch),
+        ]);
 
-        res.audio_features.forEach((track, i) => {
+        res.audio_features.forEach((track) => {
           if (track) {
-            const trackDetails = resTrack.tracks.find((t) => t.id === track.id);
+            const trackDetails = resTrack.tracks.find((t) => t?.id === track.id);
             if (trackDetails) {
-              var info = new djTrackInfo(track, trackDetails);
+              const info = new djTrackInfo(track, trackDetails);
               trackDb[track.id] = info;
             }
           }
@@ -1028,36 +1066,45 @@ button.btn:hover {
     });
   };
 
- const processTrackInfoQueue = async () => {
-   if (trackInfoQueue.length === 0) return;
+  const processTrackInfoQueue = async () => {
+    if (trackInfoQueue.size === 0) return;
 
-   const itemsToProcess = [...trackInfoQueue];
-   trackInfoQueue = [];
+    const ids = Array.from(trackInfoQueue.keys());
+    const queueSnapshot = new Map(trackInfoQueue);
+    trackInfoQueue.clear();
 
-   const ids = [...new Set(itemsToProcess.map((item) => item.id))];
+    const CHUNK_SIZE = 100;
+    for (let i = 0; i < ids.length; i += CHUNK_SIZE) {
+      const chunk = ids.slice(i, i + CHUNK_SIZE);
+      await getTrackInfoBatch(chunk);
+    }
 
-   const CHUNK_SIZE = 100;
-   for (let i = 0; i < ids.length; i += CHUNK_SIZE) {
-     const chunk = ids.slice(i, i + CHUNK_SIZE);
-     await getTrackInfoBatch(chunk);
-   }
+    queueSnapshot.forEach((elements, id) => {
+      const info = trackDb[id];
+      if (info) {
+        elements.forEach((element) => {
+          const track = element.closest(".main-trackList-trackListRow");
+          if (track) {
+            const isRecommendation = track.closest('[data-testid="recommended-track"]') !== null;
+            addInfoToTrack(track, isRecommendation);
+          }
+        });
+      }
+    });
+  };
 
-   // After fetching, re-run update functions to render the info
-   main();
- };
+  const queueTrackInfo = (id, element) => {
+    if (!trackInfoQueue.has(id)) {
+      trackInfoQueue.set(id, new Set());
+    }
+    trackInfoQueue.get(id).add(element);
 
- const queueTrackInfo = (id, element) => {
-   const existing = trackInfoQueue.find((item) => item.id === id);
-   if (!existing) {
-     trackInfoQueue.push({ id, element });
-   }
-
-   clearTimeout(trackInfoTimeout);
-   trackInfoTimeout = setTimeout(processTrackInfoQueue, 100);
- };
+    clearTimeout(trackInfoTimeout);
+    trackInfoTimeout = setTimeout(processTrackInfoQueue, 100);
+  };
 
   const addInfoToTrack = (track, isRecommendation = false) => {
-    const hasdjinfo = track.getElementsByClassName("djinfo").length > 0;
+    const hasdjinfo = track.querySelector(".djinfo") !== null;
     const trackUri = getTracklistTrackUri(track);
     if (!trackUri) {
       console.error("Could not find track URI for track:", track, " this might be caused by a recent Spotify update, please report it on the GitHub page.");
@@ -1125,6 +1172,7 @@ button.btn:hover {
       const text = document.createElement("p");
       text.innerHTML = display_text;
       text.classList.add("djinfo");
+      text.classList.add("djinfo-animate");
       text.style.fontSize = "12px";
       djInfoColumn.innerHTML = ""; // Clear previous content
       djInfoColumn.appendChild(text);
@@ -1183,7 +1231,10 @@ button.btn:hover {
 
     const tracks = tracklist.getElementsByClassName("main-trackList-trackListRow");
     for (const track of tracks) {
-      addInfoToTrack(track);
+      if (!track.classList.contains("dj-observed")) {
+        track.classList.add("dj-observed");
+        trackIntersectionObserver.observe(track);
+      }
     }
   };
 
@@ -1195,7 +1246,10 @@ button.btn:hover {
     if (tracklist) {
       const tracks = tracklist.getElementsByClassName("main-trackList-trackListRow");
       for (const track of tracks) {
-        addInfoToTrack(track, true);
+        if (!track.classList.contains("dj-observed")) {
+          track.classList.add("dj-observed");
+          trackIntersectionObserver.observe(track);
+        }
       }
     }
   };
@@ -1230,6 +1284,9 @@ button.btn:hover {
       if (CONFIG.isPopularityEnabled) display_text.push(`♥ ${info.popularity}`);
       if (CONFIG.isYearEnabled) display_text.push(`${info.release_date}`);
       nowPlayingWidgetdjInfoData.innerHTML = display_text.join("<br>");
+      nowPlayingWidgetdjInfoData.classList.remove("djinfo-animate");
+      void nowPlayingWidgetdjInfoData.offsetWidth; // Trigger reflow
+      nowPlayingWidgetdjInfoData.classList.add("djinfo-animate");
     } else {
       nowPlayingWidgetdjInfoData.innerHTML = "";
       getTrackInfo(id).then((info) => {
@@ -1303,7 +1360,8 @@ button.btn:hover {
     }
   }
 
-  const observer = new MutationObserver(main);
+  const debouncedMain = debounce(main, 300);
+  const observer = new MutationObserver(debouncedMain);
   main();
   observer.observe(document.body, {
     childList: true,
