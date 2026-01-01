@@ -449,17 +449,20 @@ const trackMetadataResponse = protobuf.Root.fromJSON(trackMetadataJsonDescriptor
     return;
   }
 
-  const globalStyle = document.createElement("style");
-  globalStyle.innerHTML = `
-    @keyframes djInfoFadeIn {
-      from { opacity: 0; transform: translateY(5px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    .djinfo-animate {
-      animation: djInfoFadeIn 0.4s cubic-bezier(0.23, 1, 0.32, 1) forwards;
-    }
-  `;
-  document.head.appendChild(globalStyle);
+  if (!document.getElementById("dj-info-styles")) {
+    const globalStyle = document.createElement("style");
+    globalStyle.id = "dj-info-styles";
+    globalStyle.innerHTML = `
+      @keyframes djInfoFadeIn {
+        from { opacity: 0; transform: translateY(5px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      .djinfo-animate {
+        animation: djInfoFadeIn 0.4s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+      }
+    `;
+    document.head.appendChild(globalStyle);
+  }
 
   let CONFIG;
   try {
@@ -916,7 +919,7 @@ button.btn:hover {
 
   let saveTimeout = null;
   function saveTrackDb() {
-    if (saveTimeout) return;
+    clearTimeout(saveTimeout);
     saveTimeout = setTimeout(() => {
       Spicetify.LocalStorage.set("dj-info-tracks", JSON.stringify(trackDb));
       saveTimeout = null;
@@ -1082,9 +1085,8 @@ button.btn:hover {
     queueSnapshot.forEach((elements, id) => {
       const info = trackDb[id];
       if (info) {
-        elements.forEach((element) => {
-          const track = element.closest(".main-trackList-trackListRow");
-          if (track) {
+        elements.forEach((track) => {
+          if (track && track.isConnected) {
             const isRecommendation = track.closest('[data-testid="recommended-track"]') !== null;
             addInfoToTrack(track, isRecommendation);
           }
@@ -1181,7 +1183,7 @@ button.btn:hover {
         const djinfoElement = track.querySelector(".djinfo");
         if (djinfoElement) djinfoElement.remove();
       }
-      queueTrackInfo(id, djInfoColumn);
+      queueTrackInfo(id, track);
     }
   };
 
@@ -1284,8 +1286,10 @@ button.btn:hover {
       if (CONFIG.isPopularityEnabled) display_text.push(`♥ ${info.popularity}`);
       if (CONFIG.isYearEnabled) display_text.push(`${info.release_date}`);
       nowPlayingWidgetdjInfoData.innerHTML = display_text.join("<br>");
-      nowPlayingWidgetdjInfoData.classList.remove("djinfo-animate");
-      void nowPlayingWidgetdjInfoData.offsetWidth; // Trigger reflow
+      if (nowPlayingWidgetdjInfoData.classList.contains("djinfo-animate")) {
+        nowPlayingWidgetdjInfoData.classList.remove("djinfo-animate");
+        void nowPlayingWidgetdjInfoData.offsetWidth; // Trigger reflow
+      }
       nowPlayingWidgetdjInfoData.classList.add("djinfo-animate");
     } else {
       nowPlayingWidgetdjInfoData.innerHTML = "";
