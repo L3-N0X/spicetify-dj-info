@@ -449,20 +449,22 @@ const trackMetadataResponse = protobuf.Root.fromJSON(trackMetadataJsonDescriptor
     return;
   }
 
-  if (!document.getElementById("dj-info-styles")) {
-    const globalStyle = document.createElement("style");
-    globalStyle.id = "dj-info-styles";
-    globalStyle.innerHTML = `
-      @keyframes djInfoFadeIn {
-        from { opacity: 0; transform: translateY(5px); }
-        to { opacity: 1; transform: translateY(0); }
-      }
-      .djinfo-animate {
-        animation: djInfoFadeIn 0.4s cubic-bezier(0.23, 1, 0.32, 1) forwards;
-      }
-    `;
+  const STYLE_ID = "dj-info-styles";
+  let globalStyle = document.getElementById(STYLE_ID);
+  if (!globalStyle) {
+    globalStyle = document.createElement("style");
+    globalStyle.id = STYLE_ID;
     document.head.appendChild(globalStyle);
   }
+  globalStyle.innerHTML = `
+    @keyframes djInfoFadeIn {
+      from { opacity: 0; transform: translateY(5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .djinfo-animate {
+      animation: djInfoFadeIn 0.4s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+    }
+  `;
 
   let CONFIG;
   try {
@@ -529,6 +531,9 @@ const trackMetadataResponse = protobuf.Root.fromJSON(trackMetadataJsonDescriptor
     };
   };
 
+  if (window.djInfoObserver) {
+    window.djInfoObserver.disconnect();
+  }
   const trackIntersectionObserver = new IntersectionObserver(
     (entries) => {
       entries.forEach((entry) => {
@@ -542,6 +547,7 @@ const trackMetadataResponse = protobuf.Root.fromJSON(trackMetadataJsonDescriptor
     },
     { rootMargin: "200px" }
   );
+  window.djInfoObserver = trackIntersectionObserver;
 
   // Get track uri from tracklist element
   function getTracklistTrackUri(tracklistElement) {
@@ -918,13 +924,24 @@ button.btn:hover {
   }
 
   let saveTimeout = null;
-  function saveTrackDb() {
-    clearTimeout(saveTimeout);
-    saveTimeout = setTimeout(() => {
+  function saveTrackDb(immediate = false) {
+    const doSave = () => {
       Spicetify.LocalStorage.set("dj-info-tracks", JSON.stringify(trackDb));
       saveTimeout = null;
-    }, 1000);
+    };
+
+    if (immediate) {
+      clearTimeout(saveTimeout);
+      doSave();
+      return;
+    }
+
+    if (!saveTimeout) {
+      saveTimeout = setTimeout(doSave, 200);
+    }
   }
+
+  window.addEventListener("beforeunload", () => saveTrackDb(true));
 
   // Load the DB at startup
   loadTrackDb();
@@ -1044,21 +1061,26 @@ button.btn:hover {
 
     if (idsToFetch.length > 0) {
       try {
-        const [res, resTrack] = await Promise.all([
+        const results = await Promise.allSettled([
           getFeatures(idsToFetch),
           getTrackFeatures(idsToFetch),
         ]);
 
-        res.audio_features.forEach((track) => {
-          if (track) {
-            const trackDetails = resTrack.tracks.find((t) => t?.id === track.id);
-            if (trackDetails) {
-              const info = new djTrackInfo(track, trackDetails);
-              trackDb[track.id] = info;
+        const featuresRes = results[0].status === "fulfilled" ? results[0].value : null;
+        const metadataRes = results[1].status === "fulfilled" ? results[1].value : null;
+
+        if (featuresRes && featuresRes.audio_features) {
+          featuresRes.audio_features.forEach((track) => {
+            if (track) {
+              const trackDetails = metadataRes?.tracks?.find((t) => t?.id === track?.id);
+              if (trackDetails) {
+                const info = new djTrackInfo(track, trackDetails);
+                trackDb[track.id] = info;
+              }
             }
-          }
-        });
-        saveTrackDb();
+          });
+          saveTrackDb();
+        }
       } catch (error) {
         console.error("DJ Info: Error fetching batch track info:", error);
       }
@@ -1233,7 +1255,8 @@ button.btn:hover {
 
     const tracks = tracklist.getElementsByClassName("main-trackList-trackListRow");
     for (const track of tracks) {
-      if (!track.classList.contains("dj-observed")) {
+      const hasdjinfo = track.querySelector(".djinfo") !== null;
+      if (!track.classList.contains("dj-observed") || !hasdjinfo) {
         track.classList.add("dj-observed");
         trackIntersectionObserver.observe(track);
       }
@@ -1248,7 +1271,8 @@ button.btn:hover {
     if (tracklist) {
       const tracks = tracklist.getElementsByClassName("main-trackList-trackListRow");
       for (const track of tracks) {
-        if (!track.classList.contains("dj-observed")) {
+        const hasdjinfo = track.querySelector(".djinfo") !== null;
+        if (!track.classList.contains("dj-observed") || !hasdjinfo) {
           track.classList.add("dj-observed");
           trackIntersectionObserver.observe(track);
         }
@@ -1286,10 +1310,8 @@ button.btn:hover {
       if (CONFIG.isPopularityEnabled) display_text.push(`♥ ${info.popularity}`);
       if (CONFIG.isYearEnabled) display_text.push(`${info.release_date}`);
       nowPlayingWidgetdjInfoData.innerHTML = display_text.join("<br>");
-      if (nowPlayingWidgetdjInfoData.classList.contains("djinfo-animate")) {
-        nowPlayingWidgetdjInfoData.classList.remove("djinfo-animate");
-        void nowPlayingWidgetdjInfoData.offsetWidth; // Trigger reflow
-      }
+      nowPlayingWidgetdjInfoData.classList.remove("djinfo-animate");
+      void nowPlayingWidgetdjInfoData.offsetWidth; // Trigger reflow
       nowPlayingWidgetdjInfoData.classList.add("djinfo-animate");
     } else {
       nowPlayingWidgetdjInfoData.innerHTML = "";
@@ -1365,10 +1387,14 @@ button.btn:hover {
   }
 
   const debouncedMain = debounce(main, 300);
+  if (window.djInfoMutationObserver) {
+    window.djInfoMutationObserver.disconnect();
+  }
   const observer = new MutationObserver(debouncedMain);
   main();
   observer.observe(document.body, {
     childList: true,
     subtree: true,
   });
+  window.djInfoMutationObserver = observer;
 })();
