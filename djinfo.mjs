@@ -461,10 +461,10 @@ const trackMetadataResponse = protobuf.Root.fromJSON(trackMetadataJsonDescriptor
       isBPMEnabled: true,
       isKeyEnabled: false,
       isCamelotEnabled: true,
-      isPopularityEnabled: false,
+      isPopularityEnabled: true,
       isEnergyEnabled: false,
       isDanceEnabled: false,
-      isYearEnabled: true,
+      isYearEnabled: false,
     };
   }
 
@@ -906,15 +906,15 @@ button.btn:hover {
 
   cleanupOldStorage();
 
+  const productStateValues = await Spicetify.Platform.ProductStateAPI.getValues();
+  const country = productStateValues["country"] ?? "US";
+  const catalogue = productStateValues["catalogue"] ?? "premium";
+
   const getFeatures = async (ids) => {
     const task_id = new Uint8Array(16);
     crypto.getRandomValues(task_id);
     const payload = extendedMetadataRequest.encode({
-      header: {
-        country: "US",
-        catalogue: "premium",
-        task_id: task_id
-      },
+      header: { country, catalogue, task_id },
       request: ids.map((id) => (
         { entity_uri: `spotify:track:${id}`, query: { extension_kind: 222 } }
       ))
@@ -952,11 +952,7 @@ button.btn:hover {
     const task_id = new Uint8Array(16);
     crypto.getRandomValues(task_id);
     const payload = extendedMetadataRequest.encode({
-      header: {
-        country: "US",
-        catalogue: "premium",
-        task_id: task_id
-      },
+      header: { country, catalogue, task_id },
       request: ids.map((id) => (
         { entity_uri: `spotify:track:${id}`, query: { extension_kind: 10 } }
       ))
