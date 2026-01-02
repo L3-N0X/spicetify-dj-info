@@ -552,7 +552,7 @@ const trackMetadataResponse = protobuf.Root.fromJSON(trackMetadataJsonDescriptor
   // Get track uri from tracklist element
   function getTracklistTrackUri(tracklistElement) {
     let values = Object.values(tracklistElement);
-    if (!values) {
+    if (!values.length) {
       console.log("Error: Could not get tracklist element");
       return null;
     }
