@@ -988,13 +988,13 @@ button.btn:hover {
   const country = productStateValues["country"] ?? "US";
   const catalogue = productStateValues["catalogue"] ?? "premium";
 
-  const getFeatures = async (ids) => {
+  const getExtendedMetadata = async (entity_uris, extension_kind) => {
     const task_id = new Uint8Array(16);
     crypto.getRandomValues(task_id);
     const payload = extendedMetadataRequest.encode({
       header: { country, catalogue, task_id },
-      request: ids.map((id) => (
-        { entity_uri: `spotify:track:${id}`, query: { extension_kind: 222 } }
+      request: entity_uris.map((entity_uri) => (
+        { entity_uri, query: { extension_kind } }
       ))
     }).finish();
 
@@ -1009,8 +1009,12 @@ button.btn:hover {
       },
       timeout: 1000 * 15
     });
-    const buf = new Uint8Array(await resp.arrayBuffer());
 
+    return new Uint8Array(await resp.arrayBuffer());
+  }
+
+  const getFeatures = async (ids) => {
+    const buf = await getExtendedMetadata(ids.map((id) => `spotify:track:${id}`), 222);
     const msg = audioFeaturesResponse.decode(buf);
 
     return {
@@ -1027,28 +1031,7 @@ button.btn:hover {
   };
 
   const getTrackFeatures = async (ids) => {
-    const task_id = new Uint8Array(16);
-    crypto.getRandomValues(task_id);
-    const payload = extendedMetadataRequest.encode({
-      header: { country, catalogue, task_id },
-      request: ids.map((id) => (
-        { entity_uri: `spotify:track:${id}`, query: { extension_kind: 10 } }
-      ))
-    }).finish();
-
-    const resp = await fetch("https://spclient.wg.spotify.com/extended-metadata/v0/extended-metadata",{
-      method: "POST",
-      body: payload,
-      headers: {
-        "Content-Type": "application/protobuf",
-        "Authorization": `Bearer ${Spicetify.Platform.AuthorizationAPI.getState().token.accessToken}`,
-        "Spotify-App-Version": Spicetify.Platform.version,
-        "App-Platform": Spicetify.Platform.PlatformData.app_platform,
-      },
-      timeout: 1000 * 15
-    });
-    const buf = new Uint8Array(await resp.arrayBuffer());
-
+    const buf = await getExtendedMetadata(ids.map((id) => `spotify:track:${id}`), 10);
     const msg = trackMetadataResponse.decode(buf);
 
     return {
