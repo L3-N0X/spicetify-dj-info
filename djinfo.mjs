@@ -779,122 +779,14 @@ button.btn:hover {
 
   // Get the Key in the right notation from /audiofeatures response
   const getKeyInNotation = (key, mode) => {
-    var keyInCamelot = "XX";
-    var keyInStandard = "XX";
-    switch (mode) {
-      case 0: // minor
-        switch (key) {
-          case 0:
-            keyInCamelot = "5A";
-            keyInStandard = "Cm";
-            break;
-          case 1:
-            keyInCamelot = "12A";
-            keyInStandard = "Dbm";
-            break;
-          case 2:
-            keyInCamelot = "7A";
-            keyInStandard = "Dm";
-            break;
-          case 3:
-            keyInCamelot = "2A";
-            keyInStandard = "Ebm";
-            break;
-          case 4:
-            keyInCamelot = "9A";
-            keyInStandard = "Em";
-            break;
-          case 5:
-            keyInCamelot = "4A";
-            keyInStandard = "Fm";
-            break;
-          case 6:
-            keyInCamelot = "11A";
-            keyInStandard = "F♯m";
-            break;
-          case 7:
-            keyInCamelot = "6A";
-            keyInStandard = "Gm";
-            break;
-          case 8:
-            keyInCamelot = "1A";
-            keyInStandard = "Abm";
-            break;
-          case 9:
-            keyInCamelot = "8A";
-            keyInStandard = "Am";
-            break;
-          case 10:
-            keyInCamelot = "3A";
-            keyInStandard = "Bbm";
-            break;
-          case 11:
-            keyInCamelot = "10A";
-            keyInStandard = "Bm";
-            break;
-          default:
-            break;
-        }
-        break;
-      case 1: //major
-        switch (key) {
-          case 0:
-            keyInCamelot = "8B";
-            keyInStandard = "C";
-            break;
-          case 1:
-            keyInCamelot = "3B";
-            keyInStandard = "Db";
-            break;
-          case 2:
-            keyInCamelot = "10B";
-            keyInStandard = "D";
-            break;
-          case 3:
-            keyInCamelot = "5B";
-            keyInStandard = "Eb";
-            break;
-          case 4:
-            keyInCamelot = "12B";
-            keyInStandard = "E";
-            break;
-          case 5:
-            keyInCamelot = "7B";
-            keyInStandard = "F";
-            break;
-          case 6:
-            keyInCamelot = "2B";
-            keyInStandard = "F♯";
-            break;
-          case 7:
-            keyInCamelot = "9B";
-            keyInStandard = "G";
-            break;
-          case 8:
-            keyInCamelot = "4B";
-            keyInStandard = "Ab";
-            break;
-          case 9:
-            keyInCamelot = "11B";
-            keyInStandard = "A";
-            break;
-          case 10:
-            keyInCamelot = "6B";
-            keyInStandard = "Bb";
-            break;
-          case 11:
-            keyInCamelot = "1B";
-            keyInStandard = "B";
-            break;
-          default:
-            break;
-        }
-        break;
-      default:
-        break;
+    const keyInCamelot = (key < 0 || mode < 0) ? "XX" : ((7 * key + [4, 7][mode]) % 12 + 1) + "AB"[mode];
+    const keyInStandard = key < 0 ? "XX" : "C Db D Eb E F F♯ G Ab A Bb B".split(" ")[key] + ["m","","?"].at(mode);
+    if (CONFIG.isCamelotEnabled) {
+      if (CONFIG.isKeyEnabled) {
+        return `${keyInStandard}&nbsp;(${keyInCamelot})`; // if both are enabled return both
+      }
+      return keyInCamelot; // else if only camelot is enabled return camelot
     }
-    if (CONFIG.isCamelotEnabled && CONFIG.isKeyEnabled) return `${keyInStandard}&nbsp;(${keyInCamelot})`; // if both are enabled return both
-    if (CONFIG.isCamelotEnabled) return keyInCamelot; // else if only camelot is enabled return camelot
     return keyInStandard; // else return key in standard notation
   };
 
