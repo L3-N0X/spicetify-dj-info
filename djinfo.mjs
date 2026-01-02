@@ -909,8 +909,23 @@ button.btn:hover {
       this.popularity = resTrack.popularity;
       this.release_date = resTrack.album.release_date.split("-")[0];
     }
+    static from(obj) {
+      if (typeof obj === "string") {
+        const [ key, mode, tempo, energy, danceability, popularity, release_date ] = obj.split(",").map(x => (
+          x === "" ? null : +x
+        ));
+        obj = { key, mode, tempo, energy, danceability, popularity, release_date };
+      }
+      return obj;
+    }
+    static tostr(obj) {
+      const { key, mode, tempo, energy, danceability, popularity, release_date } = obj;
+      return [key, mode, tempo, energy, danceability, popularity, release_date].map(x => (
+        x !== x ? null : x
+      )).join();
+    }
   };
- 
+
   const trackInfoQueue = new Map();
   let trackInfoTimeout = null;
   let trackDb = {};
@@ -918,6 +933,9 @@ button.btn:hover {
   function loadTrackDb() {
     try {
       trackDb = JSON.parse(Spicetify.LocalStorage.get("dj-info-tracks") || "{}");
+      Object.keys(trackDb).forEach(key => {
+        trackDb[key] = djTrackInfo.from(trackDb[key]);
+      });
     } catch {
       trackDb = {};
     }
@@ -926,7 +944,11 @@ button.btn:hover {
   let saveTimeout = null;
   function saveTrackDb(immediate = false) {
     const doSave = () => {
-      Spicetify.LocalStorage.set("dj-info-tracks", JSON.stringify(trackDb));
+      const savedDb = {};
+      Object.keys(trackDb).forEach(key => {
+        savedDb[key] = djTrackInfo.tostr(trackDb[key]);
+      });
+      Spicetify.LocalStorage.set("dj-info-tracks", JSON.stringify(savedDb));
       saveTimeout = null;
     };
 
