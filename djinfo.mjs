@@ -1386,7 +1386,7 @@ button.btn:hover {
     }
   }
 
-  const debouncedMain = debounce(main, 300);
+  const debouncedMain = debounce(main, 10);
   if (window.djInfoMutationObserver) {
     window.djInfoMutationObserver.disconnect();
   }
