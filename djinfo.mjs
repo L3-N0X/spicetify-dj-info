@@ -970,6 +970,11 @@ button.btn:hover {
 
     // get the Infos from requests, generating a Display Text
     const uri = trackUri;
+    if (uri.split(":")[1] === "local") {
+      // don't request data for local files
+      nowPlayingWidgetdjInfoData.innerHTML = "";
+      return;
+    }
     const id = uri.split(":")[2];
     const info = await getTrackInfo(id);
     if (info) {
