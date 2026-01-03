@@ -12,51 +12,26 @@ const extendedMetadataJsonDescriptor = {
   nested: {
     Message: {
       fields: {
-        header: {
-          type: "Header",
-          id: 1
-        },
-        request: {
-          type: "Request",
-          id: 2,
-          rule: "repeated"
-        },
+        header: { type: "Header", id: 1 },
+        request: { type: "Request", id: 2, rule: "repeated" },
       }
     },
     Header: {
       fields: {
-        country: {
-          type: "string",
-          id: 1
-        },
-        catalogue: {
-          type: "string",
-          id: 2
-        },
-        task_id: {
-          type: "bytes",
-          id: 3
-        }
+        country: { type: "string", id: 1 },
+        catalogue: { type: "string", id: 2 },
+        task_id: { type: "bytes", id: 3 }
       }
     },
     Request: {
       fields: {
-        entity_uri: {
-          type: "string",
-          id: 1
-        },
-        query: {
-          type: "Query",
-          id: 2
-        }
+        entity_uri: { type: "string", id: 1 },
+        query: { type: "Query", id: 2 }
       }
     },
     Query: {
       fields: {
-        extension_kind: {
-          type: "uint32",
-          id: 1
-        }
+        extension_kind: { type: "uint32", id: 1 }
       }
     }
   }
@@ -66,130 +41,57 @@ const audioFeaturesJsonDescriptor = {
   nested: {
     Message: {
       fields: {
-        header: {
-          type: "Header",
-          id: 1,
-        },
-        extension_kind: {
-          type: "uint32",
-          id: 2
-        },
-        response: {
-          type: "Response",
-          id: 3,
-          rule: "repeated"
-        }
+        header: { type: "Header", id: 1, },
+        extension_kind: { type: "uint32", id: 2 },
+        response: { type: "Response", id: 3, rule: "repeated" }
       }
     },
     Header: {
       fields: {
-        status: {
-          type: "uint32",
-          id: 1
-        },
-        cache_ttl: {
-          type: "uint32",
-          id: 2
-        },
-        offline_ttl: {
-          type: "uint32",
-          id: 3
-        }
+        status: { type: "uint32", id: 1 },
+        cache_ttl: { type: "uint32", id: 2 },
+        offline_ttl: { type: "uint32", id: 3 }
       }
     },
     Response: {
       fields: {
-        info: {
-          type: "ResponseInfo",
-          id: 1
-        },
-        track: {
-          type: "string",
-          id: 2
-        },
-        attributes: {
-          type: "AudioAttributesWrapper",
-          id: 3,
-          rule: "optional"
-        }
+        info: { type: "ResponseInfo", id: 1 },
+        track: { type: "string", id: 2 },
+        attributes: { type: "AudioAttributesWrapper", id: 3, rule: "optional" }
       }
     },
     ResponseInfo: {
       fields: {
-        status: {
-          type: "uint32",
-          id: 1
-        },
-        etag: {
-          type: "string",
-          id: 2,
-          rule: "optional"
-        },
-        locale: {
-          type: "string",
-          id: 3,
-          rule: "optional"
-        },
-        cache_ttl: {
-          type: "uint32",
-          id: 4
-        },
-        offline_ttl: {
-          type: "uint32",
-          id: 5
-        }
+        status: { type: "uint32", id: 1 },
+        etag: { type: "string", id: 2, rule: "optional" },
+        locale: { type: "string", id: 3, rule: "optional" },
+        cache_ttl: { type: "uint32", id: 4 },
+        offline_ttl: { type: "uint32", id: 5 }
       }
     },
     AudioAttributesWrapper: {
       fields: {
-        typestr: {
-          type: "string",
-          id: 1
-        },
-        attributes: {
-          type: "AudioAttributes",
-          id: 2
-        }
+        typestr: { type: "string", id: 1 },
+        attributes: { type: "AudioAttributes", id: 2 }
       }
     },
     AudioAttributes: {
       fields: {
-        bpm: {
-          type: "double",
-          id: 1
-        },
-        key: {
-          type: "Key",
-          id: 2
-        }
+        bpm: { type: "double", id: 1 },
+        key: { type: "Key", id: 2 }
       }
     },
     Key: {
       fields: {
-        key: {
-          type: "string",
-          id: 1
-        },
-        majorMinor: {
-          type: "uint32",
-          id: 2
-        },
-        camelot: {
-          type: "CamelotKey",
-          id: 3
-        }
+        key: { type: "string", id: 1 },
+        majorMinor: { type: "uint32", id: 2 },
+        camelot: { type: "CamelotKey", id: 3 }
       }
     },
     CamelotKey: {
       fields: {
-        key: {
-          type: "string",
-          id: 1
-        },
-        backgroundColor: {
-          type: "string",
-          id: 2
-        }
+        key: { type: "string", id: 1 },
+        backgroundColor: { type: "string", id: 2 }
       }
     }
   }
@@ -199,142 +101,66 @@ const trackMetadataJsonDescriptor = {
   nested: {
     Message: {
       fields: {
-        header: {
-          type: "Header",
-          id: 1,
-        },
-        extension_kind: {
-          type: "uint32",
-          id: 2
-        },
-        response: {
-          type: "Response",
-          id: 3,
-          rule: "repeated"
-        }
+        header: { type: "Header", id: 1, },
+        extension_kind: { type: "uint32", id: 2 },
+        response: { type: "Response", id: 3, rule: "repeated" }
       }
     },
     Header: {
       fields: {
-        status: {
-          type: "uint32",
-          id: 1
-        },
-        cache_ttl: {
-          type: "uint32",
-          id: 2
-        },
-        offline_ttl: {
-          type: "uint32",
-          id: 3
-        }
+        status: { type: "uint32", id: 1 },
+        cache_ttl: { type: "uint32", id: 2 },
+        offline_ttl: { type: "uint32", id: 3 }
       }
     },
     Response: {
       fields: {
-        info: {
-          type: "ResponseInfo",
-          id: 1
-        },
-        track: {
-          type: "string",
-          id: 2
-        },
-        metadata: {
-          type: "TrackMetadataWrapper",
-          id: 3,
-          rule: "optional"
+        info: { type: "ResponseInfo", id: 1 },
+        track: { type: "string", id: 2 },
+        metadata: { type: "TrackMetadataWrapper", id: 3, rule: "optional"
         }
       }
     },
     ResponseInfo: {
       fields: {
-        status: {
-          type: "uint32",
-          id: 1
-        },
-        etag: {
-          type: "string",
-          id: 2,
-          rule: "optional"
-        },
-        locale: {
-          type: "string",
-          id: 3,
-          rule: "optional"
-        },
-        cache_ttl: {
-          type: "uint32",
-          id: 4
-        },
-        offline_ttl: {
-          type: "uint32",
-          id: 5
-        }
+        status: { type: "uint32", id: 1 },
+        etag: { type: "string", id: 2, rule: "optional" },
+        locale: { type: "string", id: 3, rule: "optional" },
+        cache_ttl: { type: "uint32", id: 4 },
+        offline_ttl: { type: "uint32", id: 5 }
       }
     },
     TrackMetadataWrapper: {
       fields: {
-        typestr: {
-          type: "string",
-          id: 1
-        },
-        metadata: {
-          type: "TrackMetadata",
-          id: 2
-        }
+        typestr: { type: "string", id: 1 },
+        metadata: { type: "TrackMetadata", id: 2 }
       }
     },
     TrackMetadata: {
       fields: {
-        hex_id: {
-          type: "bytes",
-          id: 1
-        },
-        name: {
-          type: "string",
-          id: 2
-        },
-        album: {
-          type: "AlbumMetadata",
-          id: 3
-        },
-        artist: {
-          type: "Artist",
-          id: 4,
-          rule: "repeated"
-        },
-        track_num: {
-          type: "sint32",
-          id: 5
-        },
-        disc_num: {
-          type: "sint32",
-          id: 6
-        },
-        duration_ms: {
-          type: "sint32",
-          id: 7
-        },
-        popularity: {
-          type: "sint32",
-          id: 8
-        },
+        gid: { type: "bytes", id: 1 },
+        name: { type: "string", id: 2 },
+        album: { type: "AlbumMetadata", id: 3 },
+        artist: { type: "Artist", id: 4, rule: "repeated" },
+        track_num: { type: "sint32", id: 5 },
+        disc_num: { type: "sint32", id: 6 },
+        duration_ms: { type: "sint32", id: 7 },
+        popularity: { type: "sint32", id: 8 },
         external_id: { type: "bytes", id: 10, rule: "optional" },
-        field11: { type: "bytes", id: 11, rule: "optional" },
-        field12: { type: "bytes", id: 12, rule: "optional" },
-        field13: { type: "bytes", id: 13, rule: "optional" },
+        restriction: { type: "bytes", id: 11, rule: "optional" },
+        file: { type: "bytes", id: 12, rule: "optional" },
+        alternative: { type: "bytes", id: 13, rule: "optional" },
         field15: { type: "bytes", id: 15, rule: "optional" },
         earliest_live_timestamp: { type: "uint64", id: 17, rule: "optional" },
-        field18: { type: "uint32", id: 18, rule: "optional" },
-        field21: { type: "bytes", id: 21, rule: "optional" },
+        has_lyrics: { type: "uint32", id: 18, rule: "optional" },
+        licensor: { type: "bytes", id: 21, rule: "optional" },
         language_of_performance: { type: "string", id: 22, rule: "optional" },
         original_audio: { type: "bytes", id: 24, rule: "optional" },
         original_title: { type: "string", id: 27, rule: "optional" },
-        field32: { type: "bytes", id: 32, rule: "optional" },
-        field36: { type: "string", id: 36, rule: "optional" },
+        artist_with_role: { type: "bytes", id: 32, rule: "optional" },
+        canonical_uri: { type: "string", id: 36, rule: "optional" },
         field37: { type: "bytes", id: 37, rule: "optional" },
-        licensor: { type: "bytes", id: 39, rule: "optional" },
+        licensor2: { type: "bytes", id: 39, rule: "optional" },
         audio_formats: { type: "bytes", id: 41, rule: "optional" },
         field43: { type: "uint32", id: 43, rule: "optional" },
         implementation_details: { type: "bytes", id: 44, rule: "optional" },
@@ -342,92 +168,40 @@ const trackMetadataJsonDescriptor = {
     },
     AlbumMetadata: {
       fields: {
-        hex_id: {
-          type: "bytes",
-          id: 1
-        },
-        name: {
-          type: "string",
-          id: 2
-        },
-        artist: {
-          type: "Artist",
-          id: 3,
-          rule: "repeated"
-        },
-        label: {
-          type: "string",
-          id: 5,
-          rule: "optional"
-        },
-        release_date: {
-          type: "Date",
-          id: 6,
-          rule: "optional"
-        },
-        cover_group: {
-          type: "CoverGroup",
-          id: 17,
-        },
-        field25: { type: "bytes", id: 25, rule: "optional" },
+        gid: { type: "bytes", id: 1 },
+        name: { type: "string", id: 2 },
+        artist: { type: "Artist", id: 3, rule: "repeated" },
+        label: { type: "string", id: 5, rule: "optional" },
+        release_date: { type: "Date", id: 6, rule: "optional" },
+        cover_group: { type: "CoverGroup", id: 17, },
+        licensor: { type: "bytes", id: 25, rule: "optional" },
         field37: { type: "bytes", id: 37, rule: "optional" },
       }
     },
     Artist: {
       fields: {
-        hex_id: {
-          type: "bytes",
-          id: 1
-        },
-        name: {
-          type: "string",
-          id: 2
-        },
+        gid: { type: "bytes", id: 1 },
+        name: { type: "string", id: 2 },
       }
     },
     Date: {
       fields: {
-        year: {
-          type: "sint32",
-          id: 1
-        },
-        month: {
-          type: "sint32",
-          id: 2
-        },
-        day: {
-          type: "sint32",
-          id: 3
-        },
+        year: { type: "sint32", id: 1 },
+        month: { type: "sint32", id: 2 },
+        day: { type: "sint32", id: 3 },
       }
     },
     CoverGroup: {
       fields: {
-        image: {
-          type: "Image",
-          id: 1,
-          rule: "repeated"
-        },
+        image: { type: "Image", id: 1, rule: "repeated" },
       }
     },
     Image: {
       fields: {
-        file_id: {
-          type: "bytes",
-          id: 1
-        },
-        size: {
-          type: "uint32",
-          id: 2
-        },
-        width: { // width/height might be swapped
-          type: "sint32",
-          id: 3
-        },
-        height: {
-          type: "sint32",
-          id: 4
-        },
+        file_id: { type: "bytes", id: 1 },
+        size: { type: "uint32", id: 2 },
+        width: { type: "sint32", id: 3 },
+        height: { type: "sint32", id: 4 },
       }
     }
   }
@@ -929,11 +703,13 @@ button.btn:hover {
     return {
       tracks: msg.response.map((resp) => {
         if (!resp.metadata) return null;
+        const date = resp.metadata.metadata.album.release_date;
+        const date_iso = `${date.year}-${(date.month+'').padStart(2, '0')}-${(date.day+'').padStart(2, '0')}`
         return {
           id: resp.track.split(":")[2],
           popularity: resp.metadata.metadata.popularity,
           album: {
-            release_date: `${resp.metadata.metadata.album.release_date.year}`
+            release_date: date_iso
           }
         }
       })
