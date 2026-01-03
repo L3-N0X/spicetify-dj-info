@@ -523,6 +523,7 @@ button.btn:hover {
         name: "Enable Popularity",
         field: "isPopularityEnabled",
       }),
+      /*
       react.createElement(ConfigItem, {
         name: "Enable Energy",
         field: "isEnergyEnabled",
@@ -531,6 +532,7 @@ button.btn:hover {
         name: "Enable Danceability",
         field: "isDanceEnabled",
       }),
+      */
       react.createElement(ConfigItem, {
         name: "Enable Year",
         field: "isYearEnabled",
