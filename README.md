@@ -89,6 +89,13 @@ To toggle the visibility of DJ information, follow these steps:
 
 ## 📜 Changelog
 
+### V 2.3.1
+
+- Fixed the api breaking the extension
+- Removed Danceability and Energy because they are not available in the new api
+- Added a new UI for the DJ Info and improved the old version, which can still be used by disabling the rich ui
+- Fixed Caching and migrated to a new system which uses IndexedDB instead of localStorage and added 
+
 ### V 2.2.1
 
 - Now finally works correctly in recommendations
@@ -119,8 +126,10 @@ To toggle the visibility of DJ information, follow these steps:
 - Added the option to toggle Year, Popularity, Danceability and Key in the standard notation
 - Bugfixes
 
-## 🌐 Credits
+## 🌐 Credits & Thanks
 
+A big shoutout to [obafgkmdh](https://github.com/obafgkmdh) and [FixeQD](https://github.com/FixeQD) for fixing the extension after the internal api broke and migrating the whole api to the internal protobuf based api!
+And also thanks to [Golevka2001](https://github.com/Golevka2001) for the idea for better alignment of the DJ info in the playlist!
 Big thanks to [duffey](https://github.com/Tetrax-10) for the main code of displaying something in the playlist and the now playing widget!
 Also thanks to [je09](https://github.com/je09) for contributing the code for displaying both the standard notation and the Camelot system for the key aswell as the option to display it on the left side in now playing!
 
