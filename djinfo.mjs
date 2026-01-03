@@ -206,6 +206,89 @@ const trackMetadataResponse = protobuf.Root.fromJSON(trackMetadataJsonDescriptor
     .djinfo-animate {
       animation: djInfoFadeIn 0.4s cubic-bezier(0.23, 1, 0.32, 1) forwards;
     }
+    .dj-info-grid {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      height: 100%;
+      line-height: normal;
+      padding-left: 8px;
+    }
+    .dj-info-row-top {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 2px;
+      font-weight: 500;
+      font-size: 13px;
+    }
+    .dj-info-row-bottom {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      opacity: 0.8;
+    }
+    .dj-info-tag {
+      padding: 1px 6px;
+      border-radius: 4px;
+      color: #000;
+      font-weight: 700;
+      font-size: 11px;
+      text-shadow: none;
+    }
+    
+    :root {
+      --camelot-1A: #00D3AA;
+      --camelot-1B: #00CC33;
+      --camelot-2A: #00E072;
+      --camelot-2B: #78E600;
+      --camelot-3A: #60E916;
+      --camelot-3B: #BFD700;
+      --camelot-4A: #C3EC00;
+      --camelot-4B: #EBD100;
+      --camelot-5A: #F0E100;
+      --camelot-5B: #FFC000;
+      --camelot-6A: #FFC900;
+      --camelot-6B: #FF8D00;
+      --camelot-7A: #FFA900;
+      --camelot-7B: #EF5524;
+      --camelot-8A: #FF7C00;
+      --camelot-8B: #FF354C;
+      --camelot-9A: #E24F21;
+      --camelot-9B: #D81C65;
+      --camelot-10A: #C83036;
+      --camelot-10B: #A22888;
+      --camelot-11A: #982257;
+      --camelot-11B: #561F9B;
+      --camelot-12A: #5A1C81;
+      --camelot-12B: #0096C6;
+    }
+
+    .camelot-key-1A { background-color: var(--camelot-1A); }
+    .camelot-key-1B { background-color: var(--camelot-1B); }
+    .camelot-key-2A { background-color: var(--camelot-2A); }
+    .camelot-key-2B { background-color: var(--camelot-2B); }
+    .camelot-key-3A { background-color: var(--camelot-3A); }
+    .camelot-key-3B { background-color: var(--camelot-3B); }
+    .camelot-key-4A { background-color: var(--camelot-4A); }
+    .camelot-key-4B { background-color: var(--camelot-4B); }
+    .camelot-key-5A { background-color: var(--camelot-5A); }
+    .camelot-key-5B { background-color: var(--camelot-5B); }
+    .camelot-key-6A { background-color: var(--camelot-6A); }
+    .camelot-key-6B { background-color: var(--camelot-6B); }
+    .camelot-key-7A { background-color: var(--camelot-7A); }
+    .camelot-key-7B { background-color: var(--camelot-7B); }
+    .camelot-key-8A { background-color: var(--camelot-8A); }
+    .camelot-key-8B { background-color: var(--camelot-8B); }
+    .camelot-key-9A { background-color: var(--camelot-9A); }
+    .camelot-key-9B { background-color: var(--camelot-9B); }
+    .camelot-key-10A { background-color: var(--camelot-10A); }
+    .camelot-key-10B { background-color: var(--camelot-10B); }
+    .camelot-key-11A { background-color: var(--camelot-11A); }
+    .camelot-key-11B { background-color: var(--camelot-11B); }
+    .camelot-key-12A { background-color: var(--camelot-12A); }
+    .camelot-key-12B { background-color: var(--camelot-12B); }
   `;
 
   let CONFIG;
@@ -224,6 +307,8 @@ const trackMetadataResponse = protobuf.Root.fromJSON(trackMetadataJsonDescriptor
       isEnergyEnabled: false,
       isDanceEnabled: false,
       isYearEnabled: true,
+      isMonospacedEnabled: false,
+      isRichUiEnabled: false,
     };
   }
 
@@ -248,6 +333,15 @@ const trackMetadataResponse = protobuf.Root.fromJSON(trackMetadataJsonDescriptor
   const sevenColumnGridCss =
     "[index] 16px [first] 5fr [var1] 3fr [var2] 2fr [var3] minmax(120px,1fr) [var4] 2fr [last] minmax(120px,1fr)";
   const recommendationGridCss = "[index] 3fr [first] 2fr [var1] 1fr [var2] 1fr [last] 1fr";
+
+  // Compact grid definitions for Rich UI
+  const richFourColumnGridCss = "[first] 4fr [var1] 2fr [var2] 2fr [last] minmax(80px,0.5fr)";
+  const richFiveColumnGridCss =
+    "[index] 16px [first] 3fr [var1] 2fr [var2] 2fr [last] minmax(80px,0.5fr)";
+  const richSixColumnGridCss =
+    "[index] 16px [first] 5fr [var1] 3fr [var2] 2fr [var3] 2fr [last] minmax(80px,0.5fr)";
+  const richSevenColumnGridCss =
+    "[index] 16px [first] 5fr [var1] 3fr [var2] 2fr [var3] minmax(80px,0.5fr) [var4] 2fr [last] minmax(80px,0.5fr)";
 
   const waitForElement = (selector) => {
     return new Promise((resolve) => {
@@ -497,6 +591,14 @@ button.btn:hover {
       react.createElement(ConfigItem, {
         name: "Enable Year",
         field: "isYearEnabled",
+      }),
+      react.createElement(ConfigItem, {
+        name: "Enable Monospaced Alignment",
+        field: "isMonospacedEnabled",
+      }),
+      react.createElement(ConfigItem, {
+        name: "Enable Rich UI (Experimental)",
+        field: "isRichUiEnabled",
       }),
       react.createElement(reloadItem, {
         name: "Reload Window to apply changes",
@@ -803,22 +905,42 @@ button.btn:hover {
         djInfoColumn.style.width = "100%";
         track.style["grid-template-columns"] = recommendationGridCss;
       } else {
-        switch (colIndexInt) {
-          case 3:
-            track.style["grid-template-columns"] = fourColumnGridCss;
-            break;
-          case 4:
-            track.style["grid-template-columns"] = fiveColumnGridCss;
-            break;
-          case 5:
-            track.style["grid-template-columns"] = sixColumnGridCss;
-            break;
-          case 6:
-            track.style["grid-template-columns"] = sevenColumnGridCss;
-            break;
-          default:
-            console.log("not 3-6 columns in Tracklist");
-            break;
+        if (CONFIG.isRichUiEnabled) {
+          switch (colIndexInt) {
+            case 3:
+              track.style["grid-template-columns"] = richFourColumnGridCss;
+              break;
+            case 4:
+              track.style["grid-template-columns"] = richFiveColumnGridCss;
+              break;
+            case 5:
+              track.style["grid-template-columns"] = richSixColumnGridCss;
+              break;
+            case 6:
+              track.style["grid-template-columns"] = richSevenColumnGridCss;
+              break;
+            default:
+              console.log("not 3-6 columns in Tracklist");
+              break;
+          }
+        } else {
+          switch (colIndexInt) {
+            case 3:
+              track.style["grid-template-columns"] = fourColumnGridCss;
+              break;
+            case 4:
+              track.style["grid-template-columns"] = fiveColumnGridCss;
+              break;
+            case 5:
+              track.style["grid-template-columns"] = sixColumnGridCss;
+              break;
+            case 6:
+              track.style["grid-template-columns"] = sevenColumnGridCss;
+              break;
+            default:
+              console.log("not 3-6 columns in Tracklist");
+              break;
+          }
         }
       }
     }
@@ -831,24 +953,95 @@ button.btn:hover {
 
     if (info) {
       if (hasdjinfo) return;
-      const parsedInfo = info;
-      const keyInNotation = getKeyInNotation(parsedInfo.key, parsedInfo.mode);
-      let display_text = [];
-      if (CONFIG.isKeyEnabled || CONFIG.isCamelotEnabled) display_text.push(`${keyInNotation}`);
-      if (CONFIG.isBPMEnabled) display_text.push(`${parsedInfo.tempo} ♫`);
-      if (CONFIG.isEnergyEnabled) display_text.push(`E ${parsedInfo.energy}`);
-      if (CONFIG.isDanceEnabled) display_text.push(`D ${parsedInfo.danceability}`);
-      if (CONFIG.isPopularityEnabled) display_text.push(`♥ ${parsedInfo.popularity}`);
-      if (CONFIG.isYearEnabled) display_text.push(`${parsedInfo.release_date}`);
-      display_text = display_text.join(" | ");
 
-      const text = document.createElement("p");
-      text.innerHTML = display_text;
-      text.classList.add("djinfo");
-      text.classList.add("djinfo-animate");
-      text.style.fontSize = "12px";
-      djInfoColumn.innerHTML = ""; // Clear previous content
-      djInfoColumn.appendChild(text);
+      if (CONFIG.isRichUiEnabled) {
+        const parsedInfo = info;
+        const container = document.createElement("div");
+        container.className = "dj-info-grid djinfo djinfo-animate";
+
+        const topRow = document.createElement("div");
+        topRow.className = "dj-info-row-top";
+
+        if (CONFIG.isKeyEnabled || CONFIG.isCamelotEnabled) {
+          const keyContent = getKeyInNotation(parsedInfo.key, parsedInfo.mode);
+          const keyTag = document.createElement("span");
+          keyTag.className = "dj-info-tag";
+          keyTag.innerText = keyContent;
+          if (CONFIG.isCamelotEnabled) {
+            const match = keyContent.match(/(\d+[AB])/);
+            if (match) {
+              keyTag.classList.add(`camelot-key-${match[1]}`);
+            } else {
+              keyTag.style.backgroundColor = "#e0e0e0";
+            }
+          } else {
+            keyTag.style.backgroundColor = "#e0e0e0";
+          }
+          topRow.appendChild(keyTag);
+        }
+
+        if (CONFIG.isBPMEnabled) {
+          const bpmSpan = document.createElement("span");
+          bpmSpan.innerText = `${parsedInfo.tempo} BPM`;
+          topRow.appendChild(bpmSpan);
+        }
+
+        const bottomRow = document.createElement("div");
+        bottomRow.className = "dj-info-row-bottom";
+
+        let bottomStats = [];
+        if (CONFIG.isEnergyEnabled) bottomStats.push(`E: ${Math.round(parsedInfo.energy * 100)}`);
+        if (CONFIG.isDanceEnabled)
+          bottomStats.push(`D: ${Math.round(parsedInfo.danceability * 100)}`);
+        if (CONFIG.isPopularityEnabled) bottomStats.push(`♥ ${parsedInfo.popularity}`);
+        if (CONFIG.isYearEnabled) bottomStats.push(`${parsedInfo.release_date}`);
+
+        if (bottomStats.length > 0) {
+          bottomRow.innerText = bottomStats.join("  ");
+        }
+
+        container.appendChild(topRow);
+        if (bottomStats.length > 0) {
+          container.appendChild(bottomRow);
+        }
+
+        djInfoColumn.innerHTML = "";
+        djInfoColumn.appendChild(container);
+      } else {
+        const parsedInfo = info;
+        const keyInNotation = getKeyInNotation(parsedInfo.key, parsedInfo.mode);
+        let display_text = [];
+        if (CONFIG.isMonospacedEnabled) {
+          if (CONFIG.isKeyEnabled || CONFIG.isCamelotEnabled)
+            display_text.push(
+              `𝄞 ${String(getKeyInNotation(info.key, info.mode)).padStart(3, "\u00A0")}`
+            );
+          if (CONFIG.isBPMEnabled)
+            display_text.push(`♫ ${String(info.tempo).padStart(3, "\u00A0")}`);
+          if (CONFIG.isEnergyEnabled)
+            display_text.push(`E ${String(info.energy).padStart(3, "\u00A0")}`);
+          if (CONFIG.isDanceEnabled)
+            display_text.push(`D ${String(info.danceability).padStart(3, "\u00A0")}`);
+          if (CONFIG.isPopularityEnabled)
+            display_text.push(`♥ ${String(info.popularity).padEnd(3, "\u00A0")}`);
+          if (CONFIG.isYearEnabled) display_text.push(`${parsedInfo.release_date}`);
+          display_text = display_text.join(" | ");
+        } else {
+          if (CONFIG.isKeyEnabled || CONFIG.isCamelotEnabled) display_text.push(`${keyInNotation}`);
+          if (CONFIG.isBPMEnabled) display_text.push(`${parsedInfo.tempo} ♫`);
+          if (CONFIG.isPopularityEnabled) display_text.push(`♥ ${parsedInfo.popularity}`);
+          if (CONFIG.isYearEnabled) display_text.push(`${parsedInfo.release_date}`);
+          display_text = display_text.join(" | ");
+        }
+
+        const text = document.createElement("p");
+        text.innerHTML = display_text;
+        text.classList.add("djinfo");
+        text.classList.add("djinfo-animate");
+        text.style.fontSize = "12px";
+        djInfoColumn.innerHTML = ""; // Clear previous content
+        djInfoColumn.appendChild(text);
+      }
     } else {
       if (hasdjinfo) {
         const djinfoElement = track.querySelector(".djinfo");
@@ -877,13 +1070,19 @@ button.btn:hover {
       tracklistHeader.insertBefore(headerColumn, lastColumn);
       switch (colIndexInt) {
         case 4:
-          tracklistHeader.style["grid-template-columns"] = fiveColumnGridCss;
+          tracklistHeader.style["grid-template-columns"] = CONFIG.isRichUiEnabled
+            ? richFiveColumnGridCss
+            : fiveColumnGridCss;
           break;
         case 5:
-          tracklistHeader.style["grid-template-columns"] = sixColumnGridCss;
+          tracklistHeader.style["grid-template-columns"] = CONFIG.isRichUiEnabled
+            ? richSixColumnGridCss
+            : sixColumnGridCss;
           break;
         case 6:
-          tracklistHeader.style["grid-template-columns"] = sevenColumnGridCss;
+          tracklistHeader.style["grid-template-columns"] = CONFIG.isRichUiEnabled
+            ? richSevenColumnGridCss
+            : sevenColumnGridCss;
           break;
         default:
           console.error("Unsupported number of columns, cannot add DJ Info header");
@@ -957,14 +1156,28 @@ button.btn:hover {
     const info = await getTrackInfo(id);
     if (info) {
       const display_text = [];
-      if (CONFIG.isKeyEnabled || CONFIG.isCamelotEnabled)
-        display_text.push(`${getKeyInNotation(info.key, info.mode)}`);
-      if (CONFIG.isBPMEnabled) display_text.push(`${info.tempo} ♫`);
-      if (CONFIG.isEnergyEnabled) display_text.push(`E ${info.energy}`);
-      if (CONFIG.isDanceEnabled) display_text.push(`D ${info.danceability}`);
-      if (CONFIG.isPopularityEnabled) display_text.push(`♥ ${info.popularity}`);
-      if (CONFIG.isYearEnabled) display_text.push(`${info.release_date}`);
-      nowPlayingWidgetdjInfoData.innerHTML = display_text.join("<br>");
+      if (CONFIG.isMonospacedEnabled) {
+        if (CONFIG.isKeyEnabled || CONFIG.isCamelotEnabled)
+          display_text.push(
+            `𝄞 ${String(getKeyInNotation(info.key, info.mode)).padStart(3, "\u00A0")}`
+          );
+        if (CONFIG.isBPMEnabled) display_text.push(`♫ ${String(info.tempo).padStart(3, "\u00A0")}`);
+        if (CONFIG.isEnergyEnabled)
+          display_text.push(`E ${String(info.energy).padStart(3, "\u00A0")}`);
+        if (CONFIG.isDanceEnabled)
+          display_text.push(`D ${String(info.danceability).padStart(3, "\u00A0")}`);
+        if (CONFIG.isPopularityEnabled)
+          display_text.push(`♥ ${String(info.popularity).padStart(3, "\u00A0")}`);
+        if (CONFIG.isYearEnabled) display_text.push(`${info.release_date}`);
+        nowPlayingWidgetdjInfoData.innerHTML = display_text.join("<br>");
+      } else {
+        if (CONFIG.isKeyEnabled || CONFIG.isCamelotEnabled)
+          display_text.push(`${getKeyInNotation(info.key, info.mode)}`);
+        if (CONFIG.isBPMEnabled) display_text.push(`${info.tempo} ♫`);
+        if (CONFIG.isPopularityEnabled) display_text.push(`♥ ${info.popularity}`);
+        if (CONFIG.isYearEnabled) display_text.push(`${info.release_date}`);
+        nowPlayingWidgetdjInfoData.innerHTML = display_text.join("<br>");
+      }
       nowPlayingWidgetdjInfoData.classList.remove("djinfo-animate");
       void nowPlayingWidgetdjInfoData.offsetWidth; // Trigger reflow
       nowPlayingWidgetdjInfoData.classList.add("djinfo-animate");
