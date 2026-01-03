@@ -5,8 +5,7 @@ Welcome to the Spicetify DJ Info Extension! This extension enhances your Spiceti
 ## ⭐Features
 
 - **Key:** Identify the key of each song in either the standard notation (Dbm) or the Camelot system (3B). The Camelot system simplifies harmonic mixing by categorizing keys into groups that are harmonically compatible. This enables smoother transitions between songs during DJ sets or when creating cohesive playlists.
-- **BPM ♫ (Beats Per Minute):** Get the tempo of each song, which indicates the speed or pace at which the music is played. BPM is useful for creating playlists with similar speed or for selecting songs for specific activities.
-<!--
+- **BPM ♫ (Beats Per Minute):** Get the tempo of each song, which indicates the speed or pace at which the music is played. BPM is useful for creating playlists with similar speed or for selecting songs for specific activities.<!--
 - **Energy E:** Explore the energy level of your songs. This metric represents the intensity and activity in a track, allowing you to find tracks with high energy for workouts or energetic playlists.
 - **Danceability D:** Explore the danceability level of your songs. This metric represents how suitable a track is for dancing based on a combination of musical elements including tempo, rhythm stability, beat strength, and overall regularity. This metric is useful for creating playlists with songs that are easy to dance to.
 -->
@@ -81,7 +80,7 @@ spicetify apply
 
 ## ⚙️ Settings
 
-You have the option to toggle the visibility of DJ information in the extension. By default, DJ information such as Key, BPM<!, Energy--> and Popularity are displayed for each song and also next to the currently playing song. However, if you prefer a cleaner interface, you can easily hide these seperately.
+You have the option to toggle the visibility of DJ information in the extension. By default, DJ information such as Key, BPM<!--, Energy--> and Popularity are displayed for each song and also next to the currently playing song. However, if you prefer a cleaner interface, you can easily hide these seperately.
 
 To toggle the visibility of DJ information, follow these steps:
 
