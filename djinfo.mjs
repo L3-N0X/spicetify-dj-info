@@ -206,6 +206,36 @@ const trackMetadataResponse = protobuf.Root.fromJSON(trackMetadataJsonDescriptor
     .djinfo-animate {
       animation: djInfoFadeIn 0.4s cubic-bezier(0.23, 1, 0.32, 1) forwards;
     }
+    .dj-info-classic-container {
+      display: grid;
+      align-items: center;
+      grid-template-columns: repeat(auto-fill, minmax(20px, 1fr));
+      gap: 0;
+      height: 100%;
+      justify-content: flex-start;
+    }
+    .dj-info-classic-container {
+      display: grid;
+      grid-template-columns: 0.7fr 0 1fr 0 0.8fr 0 0.9fr;
+      gap: 6px;
+      height: 100%;
+      align-items: center;
+      justify-items: center;
+      width: 100%;
+    }
+    .dj-info-classic-item {
+      display: flex;
+      align-items: center;
+      font-size: 13px;
+      white-space: nowrap;
+      padding: 0 2px; /* Space around text */
+    }
+    .dj-info-classic-separator {
+      opacity: 0.4;
+      font-size: 8px;
+      margin: 0 2px;
+      display: inline-block;
+    }
     .dj-info-grid {
       display: flex;
       flex-direction: column;
@@ -225,9 +255,14 @@ const trackMetadataResponse = protobuf.Root.fromJSON(trackMetadataJsonDescriptor
     .dj-info-row-bottom {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 0px;
       font-size: 11px;
       opacity: 0.8;
+    }
+    .dj-info-separator {
+      opacity: 0.6;
+      font-size: 0.8em;
+      padding: 0 4px;
     }
     .dj-info-tag {
       padding: 1px 6px;
@@ -307,8 +342,7 @@ const trackMetadataResponse = protobuf.Root.fromJSON(trackMetadataJsonDescriptor
       isEnergyEnabled: false,
       isDanceEnabled: false,
       isYearEnabled: true,
-      isMonospacedEnabled: false,
-      isRichUiEnabled: false,
+      isRichUiEnabled: true,
     };
   }
 
@@ -593,11 +627,7 @@ button.btn:hover {
         field: "isYearEnabled",
       }),
       react.createElement(ConfigItem, {
-        name: "Enable Monospaced Alignment",
-        field: "isMonospacedEnabled",
-      }),
-      react.createElement(ConfigItem, {
-        name: "Enable Rich UI (Experimental)",
+        name: "Enable Rich UI",
         field: "isRichUiEnabled",
       }),
       react.createElement(reloadItem, {
@@ -624,7 +654,7 @@ button.btn:hover {
       key < 0 ? "XX" : "C Db D Eb E F F♯ G Ab A Bb B".split(" ")[key] + ["m", "", "?"].at(mode);
     if (CONFIG.isCamelotEnabled) {
       if (CONFIG.isKeyEnabled) {
-        return `${keyInStandard}&nbsp;(${keyInCamelot})`; // if both are enabled return both
+        return `${keyInStandard}\u00a0(${keyInCamelot})`; // if both are enabled return both
       }
       return keyInCamelot; // else if only camelot is enabled return camelot
     }
@@ -982,7 +1012,7 @@ button.btn:hover {
 
         if (CONFIG.isBPMEnabled) {
           const bpmSpan = document.createElement("span");
-          bpmSpan.innerText = `${parsedInfo.tempo} BPM`;
+          bpmSpan.innerText = `${parsedInfo.tempo}\u00a0bpm`;
           topRow.appendChild(bpmSpan);
         }
 
@@ -997,7 +1027,17 @@ button.btn:hover {
         if (CONFIG.isYearEnabled) bottomStats.push(`${parsedInfo.release_date}`);
 
         if (bottomStats.length > 0) {
-          bottomRow.innerText = bottomStats.join("  ");
+          bottomStats.forEach((stat, i) => {
+            const span = document.createElement("span");
+            span.innerText = stat;
+            bottomRow.appendChild(span);
+            if (i < bottomStats.length - 1) {
+              const sep = document.createElement("span");
+              sep.className = "dj-info-separator";
+              sep.innerText = "-";
+              bottomRow.appendChild(sep);
+            }
+          });
         }
 
         container.appendChild(topRow);
@@ -1010,37 +1050,59 @@ button.btn:hover {
       } else {
         const parsedInfo = info;
         const keyInNotation = getKeyInNotation(parsedInfo.key, parsedInfo.mode);
-        let display_text = [];
-        if (CONFIG.isMonospacedEnabled) {
-          if (CONFIG.isKeyEnabled || CONFIG.isCamelotEnabled)
-            display_text.push(
-              `𝄞 ${String(getKeyInNotation(info.key, info.mode)).padStart(3, "\u00A0")}`
-            );
-          if (CONFIG.isBPMEnabled)
-            display_text.push(`♫ ${String(info.tempo).padStart(3, "\u00A0")}`);
-          if (CONFIG.isEnergyEnabled)
-            display_text.push(`E ${String(info.energy).padStart(3, "\u00A0")}`);
-          if (CONFIG.isDanceEnabled)
-            display_text.push(`D ${String(info.danceability).padStart(3, "\u00A0")}`);
-          if (CONFIG.isPopularityEnabled)
-            display_text.push(`♥ ${String(info.popularity).padEnd(3, "\u00A0")}`);
-          if (CONFIG.isYearEnabled) display_text.push(`${parsedInfo.release_date}`);
-          display_text = display_text.join(" | ");
-        } else {
-          if (CONFIG.isKeyEnabled || CONFIG.isCamelotEnabled) display_text.push(`${keyInNotation}`);
-          if (CONFIG.isBPMEnabled) display_text.push(`${parsedInfo.tempo} ♫`);
-          if (CONFIG.isPopularityEnabled) display_text.push(`♥ ${parsedInfo.popularity}`);
-          if (CONFIG.isYearEnabled) display_text.push(`${parsedInfo.release_date}`);
-          display_text = display_text.join(" | ");
+        // Create the main container
+        const container = document.createElement("div");
+        container.className = "dj-info-classic-container djinfo djinfo-animate";
+
+        // Define the data points we want to show
+        const dataPoints = [];
+
+        if (CONFIG.isKeyEnabled || CONFIG.isCamelotEnabled) {
+          dataPoints.push("𝄞 " + keyInNotation);
         }
 
-        const text = document.createElement("p");
-        text.innerHTML = display_text;
-        text.classList.add("djinfo");
-        text.classList.add("djinfo-animate");
-        text.style.fontSize = "12px";
+        if (CONFIG.isBPMEnabled) {
+          dataPoints.push(Math.round(parsedInfo.tempo) + " ♫");
+        }
+
+        if (CONFIG.isEnergyEnabled) {
+          dataPoints.push("E " + Math.round(parsedInfo.energy * 100));
+        }
+
+        if (CONFIG.isDanceEnabled) {
+          dataPoints.push("D " + Math.round(parsedInfo.danceability * 100));
+        }
+
+        if (CONFIG.isPopularityEnabled) {
+          dataPoints.push("♥ " + parsedInfo.popularity);
+        }
+
+        if (CONFIG.isYearEnabled) {
+          dataPoints.push(parsedInfo.release_date);
+        }
+
+        // Build the DOM elements
+        dataPoints.forEach((text, index) => {
+          // 1. Create the Data Item
+          const span = document.createElement("span");
+          span.className = "dj-info-classic-item";
+          span.innerText = text;
+          container.appendChild(span);
+
+          // 2. Create the Separator (if not the last item)
+          if (index < dataPoints.length - 1) {
+            const sep = document.createElement("span");
+            sep.className = "dj-info-classic-separator";
+
+            // HERE IS WHERE YOU CONTROL THE SEPARATOR CHARACTER
+            sep.innerText = "|"; // Change this to "•", "/", or ""
+
+            container.appendChild(sep);
+          }
+        });
+
         djInfoColumn.innerHTML = ""; // Clear previous content
-        djInfoColumn.appendChild(text);
+        djInfoColumn.appendChild(container);
       }
     } else {
       if (hasdjinfo) {
@@ -1156,28 +1218,13 @@ button.btn:hover {
     const info = await getTrackInfo(id);
     if (info) {
       const display_text = [];
-      if (CONFIG.isMonospacedEnabled) {
-        if (CONFIG.isKeyEnabled || CONFIG.isCamelotEnabled)
-          display_text.push(
-            `𝄞 ${String(getKeyInNotation(info.key, info.mode)).padStart(3, "\u00A0")}`
-          );
-        if (CONFIG.isBPMEnabled) display_text.push(`♫ ${String(info.tempo).padStart(3, "\u00A0")}`);
-        if (CONFIG.isEnergyEnabled)
-          display_text.push(`E ${String(info.energy).padStart(3, "\u00A0")}`);
-        if (CONFIG.isDanceEnabled)
-          display_text.push(`D ${String(info.danceability).padStart(3, "\u00A0")}`);
-        if (CONFIG.isPopularityEnabled)
-          display_text.push(`♥ ${String(info.popularity).padStart(3, "\u00A0")}`);
-        if (CONFIG.isYearEnabled) display_text.push(`${info.release_date}`);
-        nowPlayingWidgetdjInfoData.innerHTML = display_text.join("<br>");
-      } else {
-        if (CONFIG.isKeyEnabled || CONFIG.isCamelotEnabled)
-          display_text.push(`${getKeyInNotation(info.key, info.mode)}`);
-        if (CONFIG.isBPMEnabled) display_text.push(`${info.tempo} ♫`);
-        if (CONFIG.isPopularityEnabled) display_text.push(`♥ ${info.popularity}`);
-        if (CONFIG.isYearEnabled) display_text.push(`${info.release_date}`);
-        nowPlayingWidgetdjInfoData.innerHTML = display_text.join("<br>");
-      }
+      if (CONFIG.isKeyEnabled || CONFIG.isCamelotEnabled)
+        display_text.push(`${getKeyInNotation(info.key, info.mode)}`);
+      if (CONFIG.isBPMEnabled) display_text.push(`${info.tempo} ♫`);
+      if (CONFIG.isPopularityEnabled) display_text.push(`♥ ${info.popularity}`);
+      if (CONFIG.isYearEnabled) display_text.push(`${info.release_date}`);
+      nowPlayingWidgetdjInfoData.innerHTML = display_text.join("<br>");
+
       nowPlayingWidgetdjInfoData.classList.remove("djinfo-animate");
       void nowPlayingWidgetdjInfoData.offsetWidth; // Trigger reflow
       nowPlayingWidgetdjInfoData.classList.add("djinfo-animate");
