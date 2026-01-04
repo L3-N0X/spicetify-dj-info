@@ -358,24 +358,27 @@ const trackMetadataResponse = protobuf.Root.fromJSON(trackMetadataJsonDescriptor
     });
   };
 
+  const recommendationGridCss = "[index] 16px [first] 4fr [var1] 2fr [var2] 1fr [last] 1fr";
+
   // initialize css grid changes
-  const fourColumnGridCss = "[first] 4fr [var1] 2fr [var2] 2fr [last] minmax(120px,1fr)";
+  const fourColumnGridCss =
+    "[index] 16px [first] 4fr [var1] 2fr [var2] 2fr [last] minmax(120px,1fr)";
   const fiveColumnGridCss =
-    "[index] 16px [first] 3fr [var1] 2fr [var2] 2fr [last] minmax(120px,1fr)";
+    "[index] 16px [first] 6fr [var1] 4fr [var2] 3fr [last] minmax(120px,1fr)";
   const sixColumnGridCss =
-    "[index] 16px [first] 5fr [var1] 3fr [var2] 2fr [var3] 2fr [last] minmax(120px,1fr)";
+    "[index] 16px [first] 6fr [var1] 4fr [var2] 3fr [var3] 3fr [last] minmax(120px,1fr)";
   const sevenColumnGridCss =
-    "[index] 16px [first] 5fr [var1] 3fr [var2] 2fr [var3] minmax(120px,1fr) [var4] 2fr [last] minmax(120px,1fr)";
-  const recommendationGridCss = "[index] 3fr [first] 2fr [var1] 1fr [var2] 1fr [last] 1fr";
+    "[index] 16px [first] 6fr [var1] 3fr [var2] 2fr [var3] 2fr [var4] 3fr [last] minmax(120px,1fr)";
 
   // Compact grid definitions for Rich UI
-  const richFourColumnGridCss = "[first] 4fr [var1] 2fr [var2] 2fr [last] minmax(80px,0.5fr)";
+  const richFourColumnGridCss =
+    "[index] 16px [first] 4fr [var1] 2fr [var2] 2fr [last] minmax(120px,1fr)";
   const richFiveColumnGridCss =
-    "[index] 16px [first] 3fr [var1] 2fr [var2] 2fr [last] minmax(80px,0.5fr)";
+    "[index] 16px [first] 6fr [var1] 4fr [var2] 3fr [last] minmax(120px,1fr)";
   const richSixColumnGridCss =
-    "[index] 16px [first] 5fr [var1] 3fr [var2] 2fr [var3] 2fr [last] minmax(80px,0.5fr)";
+    "[index] 16px [first] 6fr [var1] 4fr [var2] 3fr [var3] 3fr [last] minmax(120px,1fr)";
   const richSevenColumnGridCss =
-    "[index] 16px [first] 5fr [var1] 3fr [var2] 2fr [var3] minmax(80px,0.5fr) [var4] 2fr [last] minmax(80px,0.5fr)";
+    "[index] 16px [first] 6fr [var1] 3fr [var2] 2fr [var3] max-content [var4] 2fr [last] minmax(120px,1fr)";
 
   const waitForElement = (selector) => {
     return new Promise((resolve) => {
@@ -992,76 +995,127 @@ button.btn:hover {
     trackInfoTimeout = setTimeout(processTrackInfoQueue, 100);
   };
 
+  const getVisibleColumnCount = (row) => {
+    let count = 0;
+    const children = Array.from(row.children);
+    for (const child of children) {
+      if (child.classList.contains("djInfoList")) continue;
+
+      // Check for standard Spotify column classes
+      if (
+        child.classList.contains("main-trackList-rowSectionVariable") ||
+        child.classList.contains("main-trackList-rowSectionEnd") ||
+        child.classList.contains("main-trackList-rowSectionStart") ||
+        child.classList.contains("main-trackList-rowSectionIndex")
+      ) {
+        const style = window.getComputedStyle(child);
+        if (style.display !== "none") {
+          count++;
+        }
+      }
+    }
+    return count;
+  };
+
+  const updateTrackGrid = (track, isRecommendation) => {
+    const MIN_WIDTH = 550;
+    const width = window.innerWidth;
+
+    let djInfoColumn = track.querySelector(".djInfoList");
+
+    if (width < MIN_WIDTH && !isRecommendation) {
+      if (djInfoColumn) {
+        djInfoColumn.style.display = "none";
+      }
+      track.style["grid-template-columns"] = "";
+      return;
+    }
+
+    if (djInfoColumn) {
+      djInfoColumn.style.display = "flex";
+    }
+
+    const visibleCount = getVisibleColumnCount(track);
+
+    if (isRecommendation) {
+      if (djInfoColumn) {
+        djInfoColumn.style.justifyContent = "center";
+        djInfoColumn.style.width = "100%";
+      }
+      track.style["grid-template-columns"] = recommendationGridCss;
+    } else {
+      if (CONFIG.isRichUiEnabled) {
+        switch (visibleCount) {
+          case 3:
+            track.style["grid-template-columns"] = richFourColumnGridCss;
+            break;
+          case 4:
+            track.style["grid-template-columns"] = richFiveColumnGridCss;
+            break;
+          case 5:
+            track.style["grid-template-columns"] = richSixColumnGridCss;
+            break;
+          case 6:
+            track.style["grid-template-columns"] = richSevenColumnGridCss;
+            break;
+          default:
+            // Fallback or do nothing if unusual count
+            break;
+        }
+      } else {
+        switch (visibleCount) {
+          case 3:
+            track.style["grid-template-columns"] = fourColumnGridCss;
+            break;
+          case 4:
+            track.style["grid-template-columns"] = fiveColumnGridCss;
+            break;
+          case 5:
+            track.style["grid-template-columns"] = sixColumnGridCss;
+            break;
+          case 6:
+            track.style["grid-template-columns"] = sevenColumnGridCss;
+            break;
+          default:
+            break;
+        }
+      }
+    }
+  };
+
   const addInfoToTrack = (track, isRecommendation = false) => {
     const hasdjinfo = track.querySelector(".djinfo") !== null;
     const trackUri = getTracklistTrackUri(track);
     if (!trackUri) {
-      console.error(
-        "Could not find track URI for track:",
-        track,
-        " this might be caused by a recent Spotify update, please report it on the GitHub page."
-      );
       return;
     }
     const isTrack = trackUri.includes("track");
 
     let djInfoColumn = track.querySelector(".djInfoList");
+
+    // Always update grid first to handle resize/visibility changes
     if (!djInfoColumn) {
       // Add column for djInfos
       let lastColumn = track.querySelector(".main-trackList-rowSectionEnd");
-      let colIndexInt = parseInt(lastColumn.getAttribute("aria-colindex"));
+
+      // Safety check
+      if (!lastColumn) return;
+
+      // We rely on our new counter now
+      let colIndexInt = getVisibleColumnCount(track);
+
+      // If we are here, djInfoColumn does NOT exist. So it's safe to create.
       lastColumn.setAttribute("aria-colindex", (colIndexInt + 1).toString());
+
       djInfoColumn = document.createElement("div");
       djInfoColumn.setAttribute("aria-colindex", colIndexInt.toString());
       djInfoColumn.style.display = "flex";
       djInfoColumn.classList.add("main-trackList-rowSectionVariable");
       djInfoColumn.classList.add("djInfoList");
       track.insertBefore(djInfoColumn, lastColumn);
-
-      if (isRecommendation) {
-        djInfoColumn.style.justifyContent = "center";
-        djInfoColumn.style.width = "100%";
-        track.style["grid-template-columns"] = recommendationGridCss;
-      } else {
-        if (CONFIG.isRichUiEnabled) {
-          switch (colIndexInt) {
-            case 3:
-              track.style["grid-template-columns"] = richFourColumnGridCss;
-              break;
-            case 4:
-              track.style["grid-template-columns"] = richFiveColumnGridCss;
-              break;
-            case 5:
-              track.style["grid-template-columns"] = richSixColumnGridCss;
-              break;
-            case 6:
-              track.style["grid-template-columns"] = richSevenColumnGridCss;
-              break;
-            default:
-              console.log("not 3-6 columns in Tracklist");
-              break;
-          }
-        } else {
-          switch (colIndexInt) {
-            case 3:
-              track.style["grid-template-columns"] = fourColumnGridCss;
-              break;
-            case 4:
-              track.style["grid-template-columns"] = fiveColumnGridCss;
-              break;
-            case 5:
-              track.style["grid-template-columns"] = sixColumnGridCss;
-              break;
-            case 6:
-              track.style["grid-template-columns"] = sevenColumnGridCss;
-              break;
-            default:
-              console.log("not 3-6 columns in Tracklist");
-              break;
-          }
-        }
-      }
     }
+
+    updateTrackGrid(track, isRecommendation);
 
     if (!trackUri || !isTrack) return;
 
@@ -1201,6 +1255,28 @@ button.btn:hover {
     }
   };
 
+  // Resize Handler
+  const reRenderAll = () => {
+    // Re-apply grid to all observed tracks
+    const tracklists = document.querySelectorAll(".main-trackList-indexable");
+    tracklists.forEach((tracklist) => {
+      const tracks = tracklist.getElementsByClassName("main-trackList-trackListRow");
+      for (const track of tracks) {
+        addInfoToTrack(track, false);
+      }
+    });
+    // Recommendations
+    const recommendations = document.querySelector('[data-testid="recommended-track"]');
+    if (recommendations) {
+      const tracks = recommendations.getElementsByClassName("main-trackList-trackListRow");
+      for (const track of tracks) {
+        addInfoToTrack(track, true);
+      }
+    }
+  };
+
+  window.addEventListener("resize", debounce(reRenderAll, 200));
+
   // update Tracklist and insert DJ Info
   const updateTracklist = (tracklist) => {
     if (!CONFIG.isPlaylistEnabled) return;
@@ -1210,33 +1286,62 @@ button.btn:hover {
     const tracklistHeader = tracklist.querySelector(".main-trackList-trackListHeaderRow");
     if (tracklistHeader && !tracklistHeader.querySelector(".djinfoheader")) {
       let lastColumn = tracklistHeader.querySelector(".main-trackList-rowSectionEnd");
-      let colIndexInt = parseInt(lastColumn.getAttribute("aria-colindex"));
+      let visibleCols = getVisibleColumnCount(tracklistHeader);
 
-      lastColumn.setAttribute("aria-colindex", (colIndexInt + 1).toString());
+      let colIndexInt = visibleCols;
+
+      let semanticIndex = colIndexInt;
+      if (lastColumn.getAttribute("aria-colindex")) {
+        semanticIndex = parseInt(lastColumn.getAttribute("aria-colindex"));
+      }
+
+      lastColumn.setAttribute("aria-colindex", (visibleCols + 1).toString());
       let headerColumn = document.createElement("div");
       headerColumn.style.display = "flex";
       headerColumn.classList.add("main-trackList-rowSectionVariable");
       headerColumn.role = "columnheader";
       tracklistHeader.insertBefore(headerColumn, lastColumn);
-      switch (colIndexInt) {
-        case 4:
-          tracklistHeader.style["grid-template-columns"] = CONFIG.isRichUiEnabled
-            ? richFiveColumnGridCss
-            : fiveColumnGridCss;
-          break;
-        case 5:
-          tracklistHeader.style["grid-template-columns"] = CONFIG.isRichUiEnabled
-            ? richSixColumnGridCss
-            : sixColumnGridCss;
-          break;
-        case 6:
-          tracklistHeader.style["grid-template-columns"] = CONFIG.isRichUiEnabled
-            ? richSevenColumnGridCss
-            : sevenColumnGridCss;
-          break;
-        default:
-          console.error("Unsupported number of columns, cannot add DJ Info header");
-          break;
+
+      const updateHeaderGrid = () => {
+        let djInfoH = tracklistHeader.querySelector(".djinfoheader")?.parentElement;
+        if (djInfoH) djInfoH.style.display = "flex";
+        let currentVisible = getVisibleColumnCount(tracklistHeader);
+      };
+
+      if (CONFIG.isRichUiEnabled) {
+        switch (visibleCols) {
+          case 3:
+            tracklistHeader.style["grid-template-columns"] = richFourColumnGridCss;
+            break;
+          case 4:
+            tracklistHeader.style["grid-template-columns"] = richFiveColumnGridCss;
+            break;
+          case 5:
+            tracklistHeader.style["grid-template-columns"] = richSixColumnGridCss;
+            break;
+          case 6:
+            tracklistHeader.style["grid-template-columns"] = richSevenColumnGridCss;
+            break;
+          default:
+            break;
+        }
+      } else {
+        switch (visibleCols) {
+          case 3:
+            tracklistHeader.style["grid-template-columns"] = fourColumnGridCss;
+            break;
+          case 4:
+            tracklistHeader.style["grid-template-columns"] = fiveColumnGridCss;
+            break;
+          case 5:
+            tracklistHeader.style["grid-template-columns"] = sixColumnGridCss;
+            break;
+          case 6:
+            tracklistHeader.style["grid-template-columns"] = sevenColumnGridCss;
+            break;
+          default:
+            break;
+        }
       }
 
       const btn = document.createElement("button");
