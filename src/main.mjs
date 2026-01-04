@@ -10,17 +10,17 @@ import { registerSettingsMenu } from "./ui/settingsModal.mjs";
 import { initTrackDb } from "./db/trackDb.mjs";
 import { initProductState } from "./api/metadata.mjs";
 import { queueTrackInfo, setAddInfoToTrack } from "./features/queue.mjs";
-import { 
-  addInfoToTrack, 
-  updateTracklist, 
+import {
+  addInfoToTrack,
+  updateTracklist,
   updateRecommendations,
-  setQueueTrackInfo 
+  setQueueTrackInfo,
 } from "./features/tracklist.mjs";
-import { 
-  updateNowPlayingWidget, 
+import {
+  updateNowPlayingWidget,
   initNowPlayingListener,
   setNowPlayingElement,
-  getNowPlayingElement
+  getNowPlayingElement,
 } from "./features/nowPlaying.mjs";
 
 (async function djInfoList() {
@@ -39,7 +39,7 @@ import {
   initTrackDb();
   await initProductState();
   registerSettingsMenu();
-  
+
   setQueueTrackInfo(queueTrackInfo);
   setAddInfoToTrack(addInfoToTrack);
   initNowPlayingListener();
@@ -53,18 +53,19 @@ import {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
           const track = entry.target;
-          const isRecommendation = track.closest('[data-testid="recommended-track"]') !== null;
+          const isRecommendation =
+            track.closest('[data-testid="recommended-track"]') !== null;
           addInfoToTrack(track, isRecommendation);
           trackIntersectionObserver.unobserve(track);
         }
       });
     },
-    { rootMargin: "200px" }
+    { rootMargin: "200px" },
   );
   window.djInfoObserver = trackIntersectionObserver;
 
   const observedTracklists = new WeakSet();
-  
+
   let oldNowPlayingWidget = null;
   let nowPlayingWidget = null;
 
@@ -90,17 +91,24 @@ import {
 
   function main() {
     const tracklists = document.querySelectorAll(".main-trackList-indexable");
-    tracklists.forEach(tracklist => observeTracklist(tracklist, false));
+    tracklists.forEach((tracklist) => observeTracklist(tracklist, false));
 
-    const recommendationsContainer = document.querySelector('[data-testid="recommended-track"]');
+    const recommendationsContainer = document.querySelector(
+      '[data-testid="recommended-track"]',
+    );
     if (recommendationsContainer) {
       observeTracklist(recommendationsContainer, true);
     }
 
     oldNowPlayingWidget = nowPlayingWidget;
-    nowPlayingWidget = document.querySelector(".main-nowPlayingWidget-nowPlaying");
-    
-    if (nowPlayingWidget && !nowPlayingWidget.isEqualNode(oldNowPlayingWidget)) {
+    nowPlayingWidget = document.querySelector(
+      ".main-nowPlayingWidget-nowPlaying",
+    );
+
+    if (
+      nowPlayingWidget &&
+      !nowPlayingWidget.isEqualNode(oldNowPlayingWidget)
+    ) {
       if (!nowPlayingWidget.querySelector(".dj-info-now-playing")) {
         const nowPlayingWidgetdjInfoData = document.createElement("p");
         nowPlayingWidgetdjInfoData.classList.add("dj-info-now-playing");
@@ -109,8 +117,10 @@ import {
         nowPlayingWidgetdjInfoData.style.minWidth = "34px";
         nowPlayingWidgetdjInfoData.style.fontSize = "11px";
         nowPlayingWidgetdjInfoData.style.textAlign = "center";
-        
-        const trackInfo = nowPlayingWidget.querySelector(".main-trackInfo-container");
+
+        const trackInfo = nowPlayingWidget.querySelector(
+          ".main-trackInfo-container",
+        );
         if (trackInfo) {
           if (CONFIG.isLeftPlayingEnabled) {
             trackInfo.before(nowPlayingWidgetdjInfoData);
@@ -118,7 +128,7 @@ import {
             trackInfo.after(nowPlayingWidgetdjInfoData);
           }
         }
-        
+
         setNowPlayingElement(nowPlayingWidgetdjInfoData);
         updateNowPlayingWidget();
       }
@@ -126,11 +136,11 @@ import {
   }
 
   const debouncedMain = debounce(main, 10);
-  
+
   if (window.djInfoMutationObserver) {
     window.djInfoMutationObserver.disconnect();
   }
-  
+
   const observer = new MutationObserver(debouncedMain);
   main();
   observer.observe(document.body, {

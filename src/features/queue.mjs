@@ -27,7 +27,8 @@ export async function processTrackInfoQueue() {
     if (info && addInfoToTrackFn) {
       elements.forEach((track) => {
         if (track && track.isConnected) {
-          const isRecommendation = track.closest('[data-testid="recommended-track"]') !== null;
+          const isRecommendation =
+            track.closest('[data-testid="recommended-track"]') !== null;
           addInfoToTrackFn(track, isRecommendation);
         }
       });
