@@ -1,8 +1,10 @@
 {
   "name": "spicetify-dj-info",
-  "version": "1.0.0",
+  "version": "2.2.1",
   "private": true,
   "scripts": {
+    "build": "node build.mjs",
+    "build:watch": "node build.mjs --watch",
     "format": "prettier -c -w ."
   },
   "license": "MIT",

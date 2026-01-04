@@ -2,7 +2,7 @@
   "name": "Spicetify DJ Info",
   "description": "Show Key, BPM, Energy, Popularity, Danceability and Year for each track!",
   "preview": "img/preview.png",
-  "main": "djinfo.mjs",
+  "main": "dist/djinfo.mjs",
   "readme": "README.md",
   "authors": [
     {
