@@ -1,0 +1,18 @@
+{
+	"name": "spicetify-dj-info",
+	"version": "1.0.0",
+	"private": true,
+	"scripts": {
+		"format": "prettier -c -w ."
+	},
+	"license": "MIT",
+	"devDependencies": {
+		"@types/node": "^25.0.3",
+		"esbuild": "^0.27.2",
+		"prettier": "^3.7.4",
+		"terser": "^5.44.1"
+	},
+	"dependencies": {
+		"protobuf": "^0.11.1"
+	}
+}
