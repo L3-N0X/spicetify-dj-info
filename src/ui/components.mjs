@@ -40,9 +40,9 @@ export const ConfigItem = ({ name, field, disabled = false }) => {
         react.createElement(DisplayIcon, {
           icon: Spicetify.SVGIcons.check,
           size: 16,
-        })
-      )
-    )
+        }),
+      ),
+    ),
   );
 };
 
@@ -64,8 +64,8 @@ export const ReloadItem = ({ name, disabled = false }) => {
             window.location.reload();
           },
         },
-        "Reload"
-      )
-    )
+        "Reload",
+      ),
+    ),
   );
 };

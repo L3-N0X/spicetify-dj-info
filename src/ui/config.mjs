@@ -10,13 +10,16 @@ const DEFAULT_CONFIG = {
   isEnergyEnabled: false,
   isDanceEnabled: false,
   isYearEnabled: true,
+  isRichUiEnabled: true,
 };
 
 export let CONFIG;
 
 export function loadConfig() {
   try {
-    CONFIG = JSON.parse(Spicetify.LocalStorage.get("dj-info-config") || "error");
+    CONFIG = JSON.parse(
+      Spicetify.LocalStorage.get("dj-info-config") || "error",
+    );
   } catch {
     CONFIG = { ...DEFAULT_CONFIG };
   }

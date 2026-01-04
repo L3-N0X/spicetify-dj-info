@@ -1,0 +1,14 @@
+# .prettierignore
+dist/
+build/
+coverage/
+
+# Dependencies
+node_modules/
+
+# Generated files
+*.min.js
+*.bundle.js
+
+# Specific files
+config.json

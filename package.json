@@ -1,6 +1,6 @@
 {
   "name": "spicetify-dj-info",
-  "version": "2.2.1",
+  "version": "2.3.1",
   "private": true,
   "scripts": {
     "build": "node build.mjs",

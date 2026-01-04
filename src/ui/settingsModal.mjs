@@ -7,13 +7,13 @@ const SETTINGS_ICON = `<svg viewBox="0 0 24 24" width="16" height="16" fill="cur
 
 export function openConfig() {
   const react = getReact();
-  
+
   const style = react.createElement("style", {
     dangerouslySetInnerHTML: {
       __html: CONFIG_MODAL_CSS,
     },
   });
-  
+
   const configContainer = react.createElement(
     "div",
     null,
@@ -54,11 +54,15 @@ export function openConfig() {
       name: "Enable Year",
       field: "isYearEnabled",
     }),
+    react.createElement(ConfigItem, {
+      name: "Enable Rich UI",
+      field: "isRichUiEnabled",
+    }),
     react.createElement(ReloadItem, {
       name: "Reload Window to apply changes",
-    })
+    }),
   );
-  
+
   Spicetify.PopupModal.display({
     title: "DJ Info Settings",
     content: configContainer,
@@ -70,6 +74,6 @@ export function registerSettingsMenu() {
     "DJ Info Settings",
     false,
     openConfig,
-    SETTINGS_ICON
+    SETTINGS_ICON,
   ).register();
 }

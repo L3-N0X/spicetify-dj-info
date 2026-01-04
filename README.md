@@ -22,7 +22,6 @@ Copy `dist/djinfo.mjs` into your [Spicetify](https://github.com/spicetify/spicet
 | **MacOS**    | `~/.config/spicetify/Extensions` or `$SPICETIFY_CONFIG/Extensions`                   |
 | **Windows**  | `%appdata%/spicetify/Extensions/`                                                    |
 
-
 After putting the extension file into the correct folder, run the following command to install the extension:
 
 ```bash
@@ -85,6 +84,14 @@ To toggle the visibility of DJ information, follow these steps:
 
 ## 📜 Changelog
 
+### V 2.3.1
+
+- Fixed the api breaking the extension
+- Removed Danceability and Energy because they are not available in the new api
+- Added a new UI for the DJ Info and improved the old version, which can still be used by disabling the rich ui
+- Fixed Caching and migrated to a new system which uses IndexedDB instead of LocalStorage
+- The new Camelot Key colors can be customized by overwriting the css variables
+
 ### V 2.2.1
 
 - Now finally works correctly in recommendations
@@ -115,8 +122,10 @@ To toggle the visibility of DJ information, follow these steps:
 - Added the option to toggle Year, Popularity, Danceability and Key in the standard notation
 - Bugfixes
 
-## 🌐 Credits
+## 🌐 Credits & Thanks
 
+A big shoutout to [obafgkmdh](https://github.com/obafgkmdh) and [FixeQD](https://github.com/FixeQD) for fixing the extension after the internal api broke and migrating the whole api to the internal protobuf based api and also for adding a better file structure with bundling!
+And also thanks to [Golevka2001](https://github.com/Golevka2001) for the idea for better alignment of the DJ info in the playlist!
 Big thanks to [duffey](https://github.com/Tetrax-10) for the main code of displaying something in the playlist and the now playing widget!
 Also thanks to [je09](https://github.com/je09) for contributing the code for displaying both the standard notation and the Camelot system for the key aswell as the option to display it on the left side in now playing!
 
@@ -128,5 +137,6 @@ If you encounter any issues or have suggestions for improving this extension, fe
 
 This project is licensed under the [MIT License](LICENSE.md). Feel free to use, modify, and distribute the code as per the terms of this license.
 
-----
+---
+
 Enjoy the enhanced music analysis experience with the Spicetify DJ Info Extension! If you find this extension useful, consider giving it a ⭐️ on GitHub. Thank you for using DJ Info!
