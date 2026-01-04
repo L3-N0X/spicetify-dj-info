@@ -125,8 +125,11 @@ To toggle the visibility of DJ information, follow these steps:
 ## 🌐 Credits & Thanks
 
 A big shoutout to [obafgkmdh](https://github.com/obafgkmdh) and [FixeQD](https://github.com/FixeQD) for fixing the extension after the internal api broke and migrating the whole api to the internal protobuf based api and also for adding a better file structure with bundling!
+
 And also thanks to [Golevka2001](https://github.com/Golevka2001) for the idea for better alignment of the DJ info in the playlist!
+
 Big thanks to [duffey](https://github.com/Tetrax-10) for the main code of displaying something in the playlist and the now playing widget!
+
 Also thanks to [je09](https://github.com/je09) for contributing the code for displaying both the standard notation and the Camelot system for the key aswell as the option to display it on the left side in now playing!
 
 ## 💬 Feedback and Contributions
