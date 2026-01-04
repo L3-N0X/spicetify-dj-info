@@ -14,7 +14,7 @@ Welcome to the Spicetify DJ Info Extension! This extension enhances your Spiceti
 
 ## 💻 Installation
 
-Copy `djinfo.mjs` into your [Spicetify](https://github.com/spicetify/spicetify-cli) extensions directory:
+Copy `dist/djinfo.mjs` into your [Spicetify](https://github.com/spicetify/spicetify-cli) extensions directory:
 
 | **Platform** | **Path**                                                                             |
 | ------------ | ------------------------------------------------------------------------------------ |
@@ -22,10 +22,6 @@ Copy `djinfo.mjs` into your [Spicetify](https://github.com/spicetify/spicetify-c
 | **MacOS**    | `~/.config/spicetify/Extensions` or `$SPICETIFY_CONFIG/Extensions`                   |
 | **Windows**  | `%appdata%/spicetify/Extensions/`                                                    |
 
-Also, in the extensions directory, run
-```bash
-npm install protobufjs
-```
 
 After putting the extension file into the correct folder, run the following command to install the extension:
 
