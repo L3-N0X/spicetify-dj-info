@@ -20,4 +20,4 @@ export const richSevenColumnGridCss =
 
 // Grids for Recommendations
 export const recommendationGridCss =
-  "[index] 16px [first] 4fr [var1] 2fr [var2] 1fr [last] 1fr";
+  "[first] minmax(var(--first-min-width), var(--first-max-width, 48fr)) [var1] minmax(var(--var1-min-width), var(--var1-max-width, 29fr)) [var2] minmax(var(--var2-min-width), var(--var2-max-width, 23fr)) [var3] 42fr [last] minmax(var(--last-min-width), var(--last-max-width, 1fr))";
