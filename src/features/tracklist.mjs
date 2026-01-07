@@ -183,10 +183,8 @@ export function addInfoToTrack(track, isRecommendation = false) {
 
       let bottomStats = [];
       if (CONFIG.isEnergyEnabled) bottomStats.push(`E: ${parsedInfo.energy}`);
-      if (CONFIG.isDanceEnabled)
-        bottomStats.push(`D: ${parsedInfo.danceability}`);
-      if (CONFIG.isPopularityEnabled)
-        bottomStats.push(`♥ ${parsedInfo.popularity}`);
+      if (CONFIG.isDanceEnabled) bottomStats.push(`D: ${parsedInfo.danceability}`);
+      if (CONFIG.isPopularityEnabled) bottomStats.push(`♥ ${parsedInfo.popularity}`);
       if (CONFIG.isYearEnabled) bottomStats.push(`${parsedInfo.release_date}`);
 
       if (bottomStats.length > 0) {
@@ -223,8 +221,7 @@ export function addInfoToTrack(track, isRecommendation = false) {
 
       if (CONFIG.isKeyEnabled || CONFIG.isCamelotEnabled) {
         dataPoints.push("𝄞 " + keyInNotation);
-        const weight =
-          CONFIG.isKeyEnabled && CONFIG.isCamelotEnabled ? 1.9 : 0.8;
+        const weight = CONFIG.isKeyEnabled && CONFIG.isCamelotEnabled ? 1.9 : 0.9;
         weights.push(weight);
       }
 
@@ -296,13 +293,9 @@ export function updateTracklist(tracklist, trackIntersectionObserver) {
   if (!CONFIG.isPlaylistEnabled) return;
   if (!tracklist) return;
 
-  const tracklistHeader = tracklist.querySelector(
-    ".main-trackList-trackListHeaderRow",
-  );
+  const tracklistHeader = tracklist.querySelector(".main-trackList-trackListHeaderRow");
   if (tracklistHeader && !tracklistHeader.querySelector(".djinfoheader")) {
-    let lastColumn = tracklistHeader.querySelector(
-      ".main-trackList-rowSectionEnd",
-    );
+    let lastColumn = tracklistHeader.querySelector(".main-trackList-rowSectionEnd");
     let visibleCols = getVisibleColumnCount(tracklistHeader);
 
     // This logic handles checking if a DJ column already exists hidden
@@ -318,19 +311,16 @@ export function updateTracklist(tracklist, trackIntersectionObserver) {
     if (CONFIG.isRichUiEnabled) {
       switch (visibleCols) {
         case 3:
-          tracklistHeader.style["grid-template-columns"] =
-            richFourColumnGridCss;
+          tracklistHeader.style["grid-template-columns"] = richFourColumnGridCss;
           break;
         case 4:
-          tracklistHeader.style["grid-template-columns"] =
-            richFiveColumnGridCss;
+          tracklistHeader.style["grid-template-columns"] = richFiveColumnGridCss;
           break;
         case 5:
           tracklistHeader.style["grid-template-columns"] = richSixColumnGridCss;
           break;
         case 6:
-          tracklistHeader.style["grid-template-columns"] =
-            richSevenColumnGridCss;
+          tracklistHeader.style["grid-template-columns"] = richSevenColumnGridCss;
           break;
         default:
           break;
@@ -367,9 +357,7 @@ export function updateTracklist(tracklist, trackIntersectionObserver) {
     headerColumn.appendChild(btn);
   }
 
-  const tracks = tracklist.getElementsByClassName(
-    "main-trackList-trackListRow",
-  );
+  const tracks = tracklist.getElementsByClassName("main-trackList-trackListRow");
   for (const track of tracks) {
     const hasdjinfo = track.querySelector(".djinfo") !== null;
     if (!track.classList.contains("dj-observed") || !hasdjinfo) {
@@ -379,18 +367,13 @@ export function updateTracklist(tracklist, trackIntersectionObserver) {
   }
 }
 
-export function updateRecommendations(
-  recommendations,
-  trackIntersectionObserver,
-) {
+export function updateRecommendations(recommendations, trackIntersectionObserver) {
   if (!CONFIG.isRecommendationsEnabled) return;
   if (!recommendations) return;
 
   const tracklist = recommendations.querySelector(".main-trackList-trackList");
   if (tracklist) {
-    const tracks = tracklist.getElementsByClassName(
-      "main-trackList-trackListRow",
-    );
+    const tracks = tracklist.getElementsByClassName("main-trackList-trackListRow");
     for (const track of tracks) {
       const hasdjinfo = track.querySelector(".djinfo") !== null;
       if (!track.classList.contains("dj-observed") || !hasdjinfo) {

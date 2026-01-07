@@ -8,16 +8,13 @@ export function getTracklistTrackUri(tracklistElement) {
   }
   return (
     values[0]?.pendingProps?.children[0]?.props?.children?.props?.uri ||
-    values[0]?.pendingProps?.children[0]?.props?.children?.props?.children
-      ?.props?.uri ||
-    values[0]?.pendingProps?.children[0]?.props?.children?.props?.children
-      ?.props?.children?.props?.uri ||
+    values[0]?.pendingProps?.children[0]?.props?.children?.props?.children?.props?.uri ||
+    values[0]?.pendingProps?.children[0]?.props?.children?.props?.children?.props?.children?.props
+      ?.uri ||
     values[0]?.pendingProps?.children[0]?.props?.children[0]?.props?.uri ||
     values[0]?.pendingProps?.children?.props?.value?.item?.uri ||
-    values[0]?.pendingProps?.children?.props?.children?.props?.value?.item
-      ?.uri ||
-    values[0]?.pendingProps?.children?.props?.children?.props?.children?.props
-      ?.value?.item?.uri
+    values[0]?.pendingProps?.children?.props?.children?.props?.value?.item?.uri ||
+    values[0]?.pendingProps?.children?.props?.children?.props?.children?.props?.value?.item?.uri
   );
 }
 
@@ -44,18 +41,13 @@ export function getPageType() {
 
 export function getKeyInNotation(key, mode) {
   const keyInCamelot =
-    key < 0 || mode < 0
-      ? "XX"
-      : ((7 * key + [4, 7][mode]) % 12) + 1 + "AB"[mode];
+    key < 0 || mode < 0 ? "XX" : ((7 * key + [4, 7][mode]) % 12) + 1 + "AB"[mode];
   const keyInStandard =
-    key < 0
-      ? "XX"
-      : "C Db D Eb E F F♯ G Ab A Bb B".split(" ")[key] +
-        ["m", "", "?"].at(mode);
+    key < 0 ? "XX" : "C Db D Eb E F F♯ G Ab A Bb B".split(" ")[key] + ["m", "", "?"].at(mode);
 
   if (CONFIG.isCamelotEnabled) {
     if (CONFIG.isKeyEnabled) {
-      return `${keyInStandard}&nbsp;(${keyInCamelot})`;
+      return `${keyInStandard}\u00a0(${keyInCamelot})`;
     }
     return keyInCamelot;
   }
