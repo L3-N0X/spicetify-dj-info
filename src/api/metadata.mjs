@@ -2,8 +2,8 @@ import {
   extendedMetadataJsonDescriptor,
   audioFeaturesJsonDescriptor,
   trackMetadataJsonDescriptor,
-} from "../constants/protobuf.mjs";
-import { trackDb, idb, DjTrackInfo } from "../db/trackDb.mjs";
+} from '../constants/protobuf.mjs';
+import { trackDb, idb, DjTrackInfo } from '../db/trackDb.mjs';
 
 let extendedMetadataRequest = null;
 let audioFeaturesResponse = null;
@@ -13,13 +13,13 @@ function getProtobufTypes() {
   if (!extendedMetadataRequest) {
     extendedMetadataRequest = globalThis.protobuf.Root.fromJSON(
       extendedMetadataJsonDescriptor,
-    ).lookup("Message");
-    audioFeaturesResponse = globalThis.protobuf.Root.fromJSON(
-      audioFeaturesJsonDescriptor,
-    ).lookup("Message");
-    trackMetadataResponse = globalThis.protobuf.Root.fromJSON(
-      trackMetadataJsonDescriptor,
-    ).lookup("Message");
+    ).lookup('Message');
+    audioFeaturesResponse = globalThis.protobuf.Root.fromJSON(audioFeaturesJsonDescriptor).lookup(
+      'Message',
+    );
+    trackMetadataResponse = globalThis.protobuf.Root.fromJSON(trackMetadataJsonDescriptor).lookup(
+      'Message',
+    );
   }
   return {
     extendedMetadataRequest,
@@ -28,14 +28,13 @@ function getProtobufTypes() {
   };
 }
 
-let country = "US";
-let catalogue = "premium";
+let country = 'US';
+let catalogue = 'premium';
 
 export async function initProductState() {
-  const productStateValues =
-    await Spicetify.Platform.ProductStateAPI.getValues();
-  country = productStateValues["country"] ?? "US";
-  catalogue = productStateValues["catalogue"] ?? "premium";
+  const productStateValues = await Spicetify.Platform.ProductStateAPI.getValues();
+  country = productStateValues['country'] ?? 'US';
+  catalogue = productStateValues['catalogue'] ?? 'premium';
 }
 
 export async function getExtendedMetadata(entity_uris, extension_kind) {
@@ -54,15 +53,15 @@ export async function getExtendedMetadata(entity_uris, extension_kind) {
     .finish();
 
   const resp = await fetch(
-    "https://spclient.wg.spotify.com/extended-metadata/v0/extended-metadata",
+    'https://spclient.wg.spotify.com/extended-metadata/v0/extended-metadata',
     {
-      method: "POST",
+      method: 'POST',
       body: payload,
       headers: {
-        "Content-Type": "application/protobuf",
+        'Content-Type': 'application/protobuf',
         Authorization: `Bearer ${Spicetify.Platform.AuthorizationAPI.getState().token.accessToken}`,
-        "Spotify-App-Version": Spicetify.Platform.version,
-        "App-Platform": Spicetify.Platform.PlatformData.app_platform,
+        'Spotify-App-Version': Spicetify.Platform.version,
+        'App-Platform': Spicetify.Platform.PlatformData.app_platform,
       },
       timeout: 1000 * 15,
     },
@@ -83,11 +82,9 @@ export async function getFeatures(ids) {
     if (!resp.attributes) return null;
     const attributes = resp.attributes.attributes;
     return {
-      id: resp.track.split(":")[2],
+      id: resp.track.split(':')[2],
       tempo: attributes.bpm,
-      key: "C C# D D# E F F# G G# A A# B"
-        .split(" ")
-        .indexOf(attributes.key.key),
+      key: 'C C# D D# E F F# G G# A A# B'.split(' ').indexOf(attributes.key.key),
       mode: attributes.key.majorMinor - 1,
     };
   });
@@ -105,9 +102,9 @@ export async function getTrackFeatures(ids) {
     if (!resp.metadata) return null;
     const metadata = resp.metadata.metadata;
     const date = metadata.album.release_date;
-    const date_iso = `${date?.year}-${(date?.month + "").padStart(2, "0")}-${(date?.day + "").padStart(2, "0")}`;
+    const date_iso = `${date?.year}-${(date?.month + '').padStart(2, '0')}-${(date?.day + '').padStart(2, '0')}`;
     return {
-      id: resp.track.split(":")[2],
+      id: resp.track.split(':')[2],
       popularity: metadata.popularity,
       release_date: date_iso,
     };
@@ -154,10 +151,8 @@ export async function getTrackInfoBatch(ids) {
         getTrackFeatures(idsToFetch),
       ]);
 
-      const featuresRes =
-        results[0].status === "fulfilled" ? results[0].value : null;
-      const metadataRes =
-        results[1].status === "fulfilled" ? results[1].value : null;
+      const featuresRes = results[0].status === 'fulfilled' ? results[0].value : null;
+      const metadataRes = results[1].status === 'fulfilled' ? results[1].value : null;
 
       if (featuresRes) {
         const newItems = [];
@@ -179,7 +174,7 @@ export async function getTrackInfoBatch(ids) {
         }
       }
     } catch (error) {
-      console.error("DJ Info: Error fetching batch track info:", error);
+      console.error('DJ Info: Error fetching batch track info:', error);
     }
   }
 

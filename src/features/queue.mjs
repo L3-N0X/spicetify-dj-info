@@ -1,5 +1,5 @@
-import { trackDb } from "../db/trackDb.mjs";
-import { getTrackInfoBatch } from "../api/metadata.mjs";
+import { trackDb } from '../db/trackDb.mjs';
+import { getTrackInfoBatch } from '../api/metadata.mjs';
 
 export const trackInfoQueue = new Map();
 let trackInfoTimeout = null;
@@ -27,8 +27,7 @@ export async function processTrackInfoQueue() {
     if (info && addInfoToTrackFn) {
       elements.forEach((track) => {
         if (track && track.isConnected) {
-          const isRecommendation =
-            track.closest('[data-testid="recommended-track"]') !== null;
+          const isRecommendation = track.closest('[data-testid="recommended-track"]') !== null;
           addInfoToTrackFn(track, isRecommendation);
         }
       });

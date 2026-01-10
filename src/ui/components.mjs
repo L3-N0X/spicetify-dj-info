@@ -1,14 +1,14 @@
-import { CONFIG, saveConfig } from "./config.mjs";
+import { CONFIG, saveConfig } from './config.mjs';
 
 const getReact = () => Spicetify.React;
 
 export const DisplayIcon = ({ icon, size }) => {
   const react = getReact();
-  return react.createElement("svg", {
+  return react.createElement('svg', {
     width: size,
     height: size,
-    viewBox: "0 0 16 16",
-    fill: "currentColor",
+    viewBox: '0 0 16 16',
+    fill: 'currentColor',
     dangerouslySetInnerHTML: {
       __html: icon,
     },
@@ -19,16 +19,16 @@ export const ConfigItem = ({ name, field, disabled = false }) => {
   const react = getReact();
   const [value, setValue] = react.useState(CONFIG[field]);
   return react.createElement(
-    "div",
-    { className: "setting-row" },
-    react.createElement("label", { className: "col description" }, name),
+    'div',
+    { className: 'setting-row' },
+    react.createElement('label', { className: 'col description' }, name),
     react.createElement(
-      "div",
-      { className: "col action" },
+      'div',
+      { className: 'col action' },
       react.createElement(
-        "button",
+        'button',
         {
-          className: "switch" + (value ? "" : " disabled"),
+          className: 'switch' + (value ? '' : ' disabled'),
           disabled,
           onClick: () => {
             const state = !value;
@@ -49,22 +49,22 @@ export const ConfigItem = ({ name, field, disabled = false }) => {
 export const ReloadItem = ({ name, disabled = false }) => {
   const react = getReact();
   return react.createElement(
-    "div",
-    { className: "setting-row" },
-    react.createElement("label", { className: "col description" }, name),
+    'div',
+    { className: 'setting-row' },
+    react.createElement('label', { className: 'col description' }, name),
     react.createElement(
-      "div",
-      { className: "col action" },
+      'div',
+      { className: 'col action' },
       react.createElement(
-        "button",
+        'button',
         {
-          className: "btn",
+          className: 'btn',
           disabled,
           onClick: () => {
             window.location.reload();
           },
         },
-        "Reload",
+        'Reload',
       ),
     ),
   );

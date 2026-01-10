@@ -17,14 +17,22 @@ export let CONFIG;
 
 export function loadConfig() {
   try {
-    CONFIG = JSON.parse(
-      Spicetify.LocalStorage.get("dj-info-config") || "error",
-    );
+    CONFIG = JSON.parse(Spicetify.LocalStorage.get('dj-info-config') || 'error');
+
+    // Make sure energy and dance are disabled because it's not available anymore
+    if (CONFIG.isEnergyEnabled) {
+      CONFIG.isEnergyEnabled = false;
+      saveConfig();
+    }
+    if (CONFIG.isDanceEnabled) {
+      CONFIG.isDanceEnabled = false;
+      saveConfig();
+    }
   } catch {
     CONFIG = { ...DEFAULT_CONFIG };
   }
 }
 
 export function saveConfig() {
-  Spicetify.LocalStorage.set("dj-info-config", JSON.stringify(CONFIG));
+  Spicetify.LocalStorage.set('dj-info-config', JSON.stringify(CONFIG));
 }

@@ -1,6 +1,6 @@
-import { CONFIG } from "../ui/config.mjs";
-import { getTrackInfo } from "../api/metadata.mjs";
-import { getKeyInNotation } from "../utils/track.mjs";
+import { CONFIG } from '../ui/config.mjs';
+import { getTrackInfo } from '../api/metadata.mjs';
+import { getKeyInNotation } from '../utils/track.mjs';
 
 let nowPlayingWidgetdjInfoData = null;
 
@@ -22,20 +22,20 @@ export async function updateNowPlayingWidget() {
 
   const trackUri = getTrackUri();
   if (!trackUri) {
-    nowPlayingWidgetdjInfoData.style.display = "none";
+    nowPlayingWidgetdjInfoData.style.display = 'none';
     return;
   }
 
-  const isTrack = trackUri.includes("track");
-  nowPlayingWidgetdjInfoData.style.display = isTrack ? "flex" : "none";
+  const isTrack = trackUri.includes('track');
+  nowPlayingWidgetdjInfoData.style.display = isTrack ? 'flex' : 'none';
 
   const uri = trackUri;
-  if (uri.split(":")[1] === "local") {
-    nowPlayingWidgetdjInfoData.innerHTML = "";
+  if (uri.split(':')[1] === 'local') {
+    nowPlayingWidgetdjInfoData.innerHTML = '';
     return;
   }
 
-  const id = uri.split(":")[2];
+  const id = uri.split(':')[2];
   const info = await getTrackInfo(id);
 
   if (info) {
@@ -48,12 +48,12 @@ export async function updateNowPlayingWidget() {
     if (CONFIG.isPopularityEnabled) display_text.push(`♥ ${info.popularity}`);
     if (CONFIG.isYearEnabled) display_text.push(`${info.release_date}`);
 
-    nowPlayingWidgetdjInfoData.innerHTML = display_text.join("<br>");
-    nowPlayingWidgetdjInfoData.classList.remove("djinfo-animate");
+    nowPlayingWidgetdjInfoData.innerHTML = display_text.join('<br>');
+    nowPlayingWidgetdjInfoData.classList.remove('djinfo-animate');
     void nowPlayingWidgetdjInfoData.offsetWidth; // reflow trick
-    nowPlayingWidgetdjInfoData.classList.add("djinfo-animate");
+    nowPlayingWidgetdjInfoData.classList.add('djinfo-animate');
   } else {
-    nowPlayingWidgetdjInfoData.innerHTML = "";
+    nowPlayingWidgetdjInfoData.innerHTML = '';
     getTrackInfo(id).then((info) => {
       if (info) {
         updateNowPlayingWidget();
@@ -61,11 +61,11 @@ export async function updateNowPlayingWidget() {
     });
   }
 
-  nowPlayingWidgetdjInfoData.style.fontSize = "11px";
+  nowPlayingWidgetdjInfoData.style.fontSize = '11px';
 }
 
 export function initNowPlayingListener() {
-  Spicetify.Player.addEventListener("songchange", () => {
+  Spicetify.Player.addEventListener('songchange', () => {
     updateNowPlayingWidget();
   });
 }

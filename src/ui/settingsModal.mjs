@@ -1,5 +1,5 @@
-import { ConfigItem, ReloadItem } from "./components.mjs";
-import { CONFIG_MODAL_CSS } from "./styles.mjs";
+import { ConfigItem, ReloadItem } from './components.mjs';
+import { CONFIG_MODAL_CSS } from './styles.mjs';
 
 const getReact = () => Spicetify.React;
 
@@ -8,72 +8,67 @@ const SETTINGS_ICON = `<svg viewBox="0 0 24 24" width="16" height="16" fill="cur
 export function openConfig() {
   const react = getReact();
 
-  const style = react.createElement("style", {
+  const style = react.createElement('style', {
     dangerouslySetInnerHTML: {
       __html: CONFIG_MODAL_CSS,
     },
   });
 
   const configContainer = react.createElement(
-    "div",
+    'div',
     null,
     style,
     react.createElement(ConfigItem, {
-      name: "Enable in Playlists",
-      field: "isPlaylistEnabled",
+      name: 'Enable in Playlists',
+      field: 'isPlaylistEnabled',
     }),
     react.createElement(ConfigItem, {
-      name: "Enable in Now Playing",
-      field: "isNowPlayingEnabled",
+      name: 'Enable in Now Playing',
+      field: 'isNowPlayingEnabled',
     }),
     react.createElement(ConfigItem, {
-      name: "Display Info on Left Side in Now Playing",
-      field: "isLeftPlayingEnabled",
+      name: 'Display Info on Left Side in Now Playing',
+      field: 'isLeftPlayingEnabled',
     }),
     react.createElement(ConfigItem, {
-      name: "Enable in Recommendations",
-      field: "isRecommendationsEnabled",
+      name: 'Enable in Recommendations',
+      field: 'isRecommendationsEnabled',
     }),
     react.createElement(ConfigItem, {
-      name: "Enable BPM",
-      field: "isBPMEnabled",
+      name: 'Enable BPM',
+      field: 'isBPMEnabled',
     }),
     react.createElement(ConfigItem, {
-      name: "Enable Key (Standard Notation)",
-      field: "isKeyEnabled",
+      name: 'Enable Key (Standard Notation)',
+      field: 'isKeyEnabled',
     }),
     react.createElement(ConfigItem, {
-      name: "Enable Key (Camelot Notation)",
-      field: "isCamelotEnabled",
+      name: 'Enable Key (Camelot Notation)',
+      field: 'isCamelotEnabled',
     }),
     react.createElement(ConfigItem, {
-      name: "Enable Popularity",
-      field: "isPopularityEnabled",
+      name: 'Enable Popularity',
+      field: 'isPopularityEnabled',
     }),
     react.createElement(ConfigItem, {
-      name: "Enable Year",
-      field: "isYearEnabled",
+      name: 'Enable Year',
+      field: 'isYearEnabled',
     }),
     react.createElement(ConfigItem, {
-      name: "Enable Rich UI",
-      field: "isRichUiEnabled",
+      name: 'Enable Rich UI',
+      field: 'isRichUiEnabled',
     }),
     react.createElement(ReloadItem, {
-      name: "Reload Window to apply changes",
+      name: 'Reload Window to apply changes',
     }),
   );
 
   Spicetify.PopupModal.display({
-    title: "DJ Info Settings",
+    title: 'DJ Info Settings',
     content: configContainer,
   });
 }
 
 export function registerSettingsMenu() {
-  new Spicetify.Menu.Item(
-    "DJ Info Settings",
-    false,
-    openConfig,
-    SETTINGS_ICON,
-  ).register();
+  new Spicetify.Menu.Item('DJ Info Settings', false, openConfig, SETTINGS_ICON).register();
 }
