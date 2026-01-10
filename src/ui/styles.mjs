@@ -1,9 +1,9 @@
-const STYLE_ID = "dj-info-styles";
+const STYLE_ID = 'dj-info-styles';
 
 export function initStyles() {
   let globalStyle = document.getElementById(STYLE_ID);
   if (!globalStyle) {
-    globalStyle = document.createElement("style");
+    globalStyle = document.createElement('style');
     globalStyle.id = STYLE_ID;
     document.head.appendChild(globalStyle);
   }
