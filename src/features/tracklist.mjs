@@ -11,6 +11,8 @@ import {
   richSixColumnGridCss,
   richSevenColumnGridCss,
   recommendationGridCss,
+  richEightColumnGridCss,
+  eightColumnGridCss,
 } from '../constants/grid.mjs';
 
 let queueTrackInfoFn = null;
@@ -81,6 +83,9 @@ const updateTrackGrid = (track, isRecommendation) => {
         case 6:
           track.style['grid-template-columns'] = richSevenColumnGridCss;
           break;
+        case 7:
+          track.style['grid-template-columns'] = richEightColumnGridCss;
+          break;
         default:
           break;
       }
@@ -97,6 +102,9 @@ const updateTrackGrid = (track, isRecommendation) => {
           break;
         case 6:
           track.style['grid-template-columns'] = sevenColumnGridCss;
+          break;
+        case 7:
+          track.style['grid-template-columns'] = eightColumnGridCss;
           break;
         default:
           break;
