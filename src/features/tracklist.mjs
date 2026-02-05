@@ -11,6 +11,8 @@ import {
   richSixColumnGridCss,
   richSevenColumnGridCss,
   recommendationGridCss,
+  richEightColumnGridCss,
+  eightColumnGridCss,
 } from '../constants/grid.mjs';
 
 let queueTrackInfoFn = null;
@@ -37,6 +39,7 @@ const getVisibleColumnCount = (row) => {
       }
     }
   }
+  console.log(count);
   return count;
 };
 
@@ -81,6 +84,9 @@ const updateTrackGrid = (track, isRecommendation) => {
         case 6:
           track.style['grid-template-columns'] = richSevenColumnGridCss;
           break;
+        case 7:
+          track.style['grid-template-columns'] = richEightColumnGridCss;
+          break;
         default:
           break;
       }
@@ -97,6 +103,9 @@ const updateTrackGrid = (track, isRecommendation) => {
           break;
         case 6:
           track.style['grid-template-columns'] = sevenColumnGridCss;
+          break;
+        case 7:
+          track.style['grid-template-columns'] = eightColumnGridCss;
           break;
         default:
           break;
@@ -298,8 +307,6 @@ export function updateTracklist(tracklist, trackIntersectionObserver) {
     let lastColumn = tracklistHeader.querySelector('.main-trackList-rowSectionEnd');
     let visibleCols = getVisibleColumnCount(tracklistHeader);
 
-    // This logic handles checking if a DJ column already exists hidden
-    // but here we just create it if missing for simplicity, matching olddjinfo
     lastColumn.setAttribute('aria-colindex', (visibleCols + 1).toString());
 
     let headerColumn = document.createElement('div');
@@ -322,6 +329,9 @@ export function updateTracklist(tracklist, trackIntersectionObserver) {
         case 6:
           tracklistHeader.style['grid-template-columns'] = richSevenColumnGridCss;
           break;
+        case 7:
+          tracklistHeader.style['grid-template-columns'] = richEightColumnGridCss;
+          break;
         default:
           break;
       }
@@ -338,6 +348,9 @@ export function updateTracklist(tracklist, trackIntersectionObserver) {
           break;
         case 6:
           tracklistHeader.style['grid-template-columns'] = sevenColumnGridCss;
+          break;
+        case 7:
+          tracklistHeader.style['grid-template-columns'] = eightColumnGridCss;
           break;
         default:
           break;
