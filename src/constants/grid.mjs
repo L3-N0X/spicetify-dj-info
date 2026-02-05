@@ -8,7 +8,7 @@ export const sixColumnGridCss =
 export const sevenColumnGridCss =
   '[index] 16px [first] 6fr [var1] 3fr [var2] 2fr [var3] max-content [var4] 4fr [last] minmax(120px,1fr)';
 export const eightColumnGridCss =
-  '[index] 16px [first] 6fr [var1] 1fr [var2] 1fr [var3] 3fr [var4] max-content [var5] 4fr [last] minmax(120px,1fr)';
+  '[index] 16px [first] 6fr [var1] 1.2fr [var2] 1fr [var3] 3fr [var4] max-content [var5] 4fr [last] minmax(120px,1fr)';
 
 // Rich UI Grids
 export const richFourColumnGridCss =
@@ -20,7 +20,7 @@ export const richSixColumnGridCss =
 export const richSevenColumnGridCss =
   '[index] 16px [first] 6fr [var1] 3fr [var2] 2fr [var3] max-content [var4] 2fr [last] minmax(120px,1fr)';
 export const richEightColumnGridCss =
-  '[index] 16px [first] 6fr [var1] 1fr [var2] 1fr [var3] 3fr [var4] max-content [var5] 2fr [last] minmax(120px,1fr)';
+  '[index] 16px [first] 6fr [var1] 1.2fr [var2] 1fr [var3] 3fr [var4] max-content [var5] 2fr [last] minmax(120px,1fr)';
 
 // Grids for Recommendations
 export const recommendationGridCss =
