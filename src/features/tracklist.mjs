@@ -198,7 +198,8 @@ export function addInfoToTrack(track, isRecommendation = false) {
       if (CONFIG.isAcousticnessEnabled) bottomStats.push(`A ${parsedInfo.acousticness}`);
       if (CONFIG.isInstrumentalnessEnabled) bottomStats.push(`I ${parsedInfo.instrumentalness}`);
       if (CONFIG.isLivenessEnabled) bottomStats.push(`L ${parsedInfo.liveness}`);
-      if (CONFIG.isLoudnessEnabled) bottomStats.push(`dB ${Math.round(parsedInfo.loudness * 10) / 10}`);
+      if (CONFIG.isLoudnessEnabled)
+        bottomStats.push(`dB ${Math.round(parsedInfo.loudness * 10) / 10}`);
       if (CONFIG.isSpeechinessEnabled) bottomStats.push(`S ${parsedInfo.speechiness}`);
       if (CONFIG.isValenceEnabled) bottomStats.push(`V ${parsedInfo.valence}`);
       if (CONFIG.isTimeSignatureEnabled) bottomStats.push(`${parsedInfo.time_signature}/4`);

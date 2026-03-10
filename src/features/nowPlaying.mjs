@@ -48,8 +48,7 @@ export async function updateNowPlayingWidget() {
     if (CONFIG.isAcousticnessEnabled) display_text.push(`A ${info.acousticness}`);
     if (CONFIG.isInstrumentalnessEnabled) display_text.push(`I ${info.instrumentalness}`);
     if (CONFIG.isLivenessEnabled) display_text.push(`L ${info.liveness}`);
-    if (CONFIG.isLoudnessEnabled)
-      display_text.push(`dB ${Math.round(info.loudness * 10) / 10}`);
+    if (CONFIG.isLoudnessEnabled) display_text.push(`dB ${Math.round(info.loudness * 10) / 10}`);
     if (CONFIG.isSpeechinessEnabled) display_text.push(`S ${info.speechiness}`);
     if (CONFIG.isValenceEnabled) display_text.push(`V ${info.valence}`);
     if (CONFIG.isTimeSignatureEnabled) display_text.push(`${info.time_signature}/4`);
