@@ -4,11 +4,11 @@ export const fourColumnGridCss =
 export const fiveColumnGridCss =
   '[index] 16px [first] 6fr [var1] 4fr [var2] 3fr [last] minmax(120px,1fr)';
 export const sixColumnGridCss =
-  '[index] 16px [first] 6fr [var1] 4fr [var2] max-content [var3] 4fr [last] minmax(120px,1fr)';
+  '[index] 16px [first] 6fr [var1] 4fr [var2] 2.5fr [var3] 3fr [last] minmax(120px,1fr)';
 export const sevenColumnGridCss =
-  '[index] 16px [first] 6fr [var1] 3fr [var2] 2fr [var3] max-content [var4] 4fr [last] minmax(120px,1fr)';
+  '[index] 16px [first] 6fr [var1] 3fr [var2] 2fr [var3] 2.5fr [var4] 3fr [last] minmax(120px,1fr)';
 export const eightColumnGridCss =
-  '[index] 16px [first] 6fr [var1] 1.2fr [var2] 1fr [var3] 3fr [var4] max-content [var5] 4fr [last] minmax(120px,1fr)';
+  '[index] 16px [first] 6fr [var1] 1.2fr [var2] 1fr [var3] 2fr [var4] 2.5fr [var5] 3fr [last] minmax(120px,1fr)';
 
 // Rich UI Grids
 export const richFourColumnGridCss =
@@ -16,11 +16,11 @@ export const richFourColumnGridCss =
 export const richFiveColumnGridCss =
   '[index] 16px [first] 6fr [var1] 4fr [var2] 3fr [last] minmax(120px,1fr)';
 export const richSixColumnGridCss =
-  '[index] 16px [first] 6fr [var1] 4fr [var2] 3fr [var3] 3fr [last] minmax(120px,1fr)';
+  '[index] 16px [first] 6fr [var1] 4fr [var2] 2fr [var3] 3fr [last] minmax(120px,1fr)';
 export const richSevenColumnGridCss =
-  '[index] 16px [first] 6fr [var1] 3fr [var2] 2fr [var3] max-content [var4] 2fr [last] minmax(120px,1fr)';
+  '[index] 16px [first] 6fr [var1] 3fr [var2] 2fr [var3] 2fr [var4] 3fr [last] minmax(120px,1fr)';
 export const richEightColumnGridCss =
-  '[index] 16px [first] 6fr [var1] 1.2fr [var2] 1fr [var3] 3fr [var4] max-content [var5] 2fr [last] minmax(120px,1fr)';
+  '[index] 16px [first] 6fr [var1] 1.2fr [var2] 1fr [var3] 2fr [var4] 2fr [var5] 3fr [last] minmax(120px,1fr)';
 
 // Grids for Recommendations
 export const recommendationGridCss =

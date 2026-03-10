@@ -25,7 +25,8 @@ const getVisibleColumnCount = (row) => {
   let count = 0;
   const children = Array.from(row.children);
   for (const child of children) {
-    if (child.classList.contains('djInfoList')) continue;
+    if (child.classList.contains('djInfoList') || child.classList.contains('djinfoheader'))
+      continue;
 
     if (
       child.classList.contains('main-trackList-rowSectionVariable') ||
@@ -46,7 +47,8 @@ const updateTrackGrid = (track, isRecommendation) => {
   const MIN_WIDTH = 550;
   const width = window.innerWidth;
 
-  let djInfoColumn = track.querySelector('.djInfoList');
+  let djInfoColumn =
+    track.querySelector('.djInfoList') || track.querySelector('.djinfoheader')?.parentElement;
 
   if (width < MIN_WIDTH && !isRecommendation) {
     if (djInfoColumn) {
@@ -117,11 +119,15 @@ export function addInfoToTrack(track, isRecommendation = false) {
   const hasdjinfo = track.querySelector('.djinfo') !== null;
   const trackUri = getTracklistTrackUri(track);
 
-  if (!trackUri) {
-    return;
-  }
+  if (!trackUri) return;
 
   const isTrack = trackUri.includes('track');
+  if (!isTrack) return;
+
+  // Re-check if it's a recommendation just in case
+  if (!isRecommendation) {
+    isRecommendation = track.closest('[data-testid="recommended-track"]') !== null;
+  }
 
   let djInfoColumn = track.querySelector('.djInfoList');
   if (!djInfoColumn) {
@@ -139,12 +145,9 @@ export function addInfoToTrack(track, isRecommendation = false) {
     }
   }
 
-  // Safety check, if updateTrackGrid depends on djInfoColumn existing
   if (djInfoColumn) {
     updateTrackGrid(track, isRecommendation);
   }
-
-  if (!trackUri || !isTrack) return;
 
   const uri = trackUri;
   const id = uri.split(':')[2];
@@ -182,7 +185,7 @@ export function addInfoToTrack(track, isRecommendation = false) {
 
       if (CONFIG.isBPMEnabled) {
         const bpmSpan = document.createElement('span');
-        bpmSpan.innerText = `${parsedInfo.tempo}\u00a0bpm`;
+        bpmSpan.innerText = `${Math.round(parsedInfo.tempo)}\u00a0bpm`;
         topRow.appendChild(bpmSpan);
       }
 
@@ -190,8 +193,15 @@ export function addInfoToTrack(track, isRecommendation = false) {
       bottomRow.className = 'dj-info-row-bottom';
 
       let bottomStats = [];
-      if (CONFIG.isEnergyEnabled) bottomStats.push(`E: ${parsedInfo.energy}`);
-      if (CONFIG.isDanceEnabled) bottomStats.push(`D: ${parsedInfo.danceability}`);
+      if (CONFIG.isEnergyEnabled) bottomStats.push(`E ${parsedInfo.energy}`);
+      if (CONFIG.isDanceEnabled) bottomStats.push(`D ${parsedInfo.danceability}`);
+      if (CONFIG.isAcousticnessEnabled) bottomStats.push(`A ${parsedInfo.acousticness}`);
+      if (CONFIG.isInstrumentalnessEnabled) bottomStats.push(`I ${parsedInfo.instrumentalness}`);
+      if (CONFIG.isLivenessEnabled) bottomStats.push(`L ${parsedInfo.liveness}`);
+      if (CONFIG.isLoudnessEnabled) bottomStats.push(`dB ${Math.round(parsedInfo.loudness * 10) / 10}`);
+      if (CONFIG.isSpeechinessEnabled) bottomStats.push(`S ${parsedInfo.speechiness}`);
+      if (CONFIG.isValenceEnabled) bottomStats.push(`V ${parsedInfo.valence}`);
+      if (CONFIG.isTimeSignatureEnabled) bottomStats.push(`${parsedInfo.time_signature}/4`);
       if (CONFIG.isPopularityEnabled) bottomStats.push(`♥ ${parsedInfo.popularity}`);
       if (CONFIG.isYearEnabled) bottomStats.push(`${parsedInfo.release_date}`);
 
@@ -199,11 +209,12 @@ export function addInfoToTrack(track, isRecommendation = false) {
         bottomStats.forEach((stat, i) => {
           const span = document.createElement('span');
           span.innerText = stat;
+          span.className = 'dj-info-row-info';
           bottomRow.appendChild(span);
           if (i < bottomStats.length - 1) {
             const sep = document.createElement('span');
             sep.className = 'dj-info-separator';
-            sep.innerText = '-';
+            sep.innerText = '/';
             bottomRow.appendChild(sep);
           }
         });
@@ -217,7 +228,7 @@ export function addInfoToTrack(track, isRecommendation = false) {
       djInfoColumn.innerHTML = '';
       djInfoColumn.appendChild(container);
     }
-    // Classic UI Implementation (Improved)
+    // Classic UI Implementation
     else if (djInfoColumn) {
       const parsedInfo = info;
       const keyInNotation = getKeyInNotation(parsedInfo.key, parsedInfo.mode);
@@ -225,62 +236,68 @@ export function addInfoToTrack(track, isRecommendation = false) {
       container.className = 'dj-info-classic-container djinfo djinfo-animate';
 
       const dataPoints = [];
-      const weights = [];
 
       if (CONFIG.isKeyEnabled || CONFIG.isCamelotEnabled) {
         dataPoints.push('𝄞 ' + keyInNotation);
-        const weight = CONFIG.isKeyEnabled && CONFIG.isCamelotEnabled ? 1.9 : 0.9;
-        weights.push(weight);
       }
 
       if (CONFIG.isBPMEnabled) {
         dataPoints.push(Math.round(parsedInfo.tempo) + ' ♫');
-        weights.push(1);
       }
 
       if (CONFIG.isEnergyEnabled) {
         dataPoints.push('E ' + parsedInfo.energy);
-        weights.push(0.8);
       }
 
       if (CONFIG.isDanceEnabled) {
         dataPoints.push('D ' + parsedInfo.danceability);
-        weights.push(0.8);
+      }
+
+      if (CONFIG.isAcousticnessEnabled) {
+        dataPoints.push('A ' + parsedInfo.acousticness);
+      }
+
+      if (CONFIG.isInstrumentalnessEnabled) {
+        dataPoints.push('I ' + parsedInfo.instrumentalness);
+      }
+
+      if (CONFIG.isLivenessEnabled) {
+        dataPoints.push('L ' + parsedInfo.liveness);
+      }
+
+      if (CONFIG.isLoudnessEnabled) {
+        dataPoints.push('dB ' + Math.round(parsedInfo.loudness * 10) / 10);
+      }
+
+      if (CONFIG.isSpeechinessEnabled) {
+        dataPoints.push('S ' + parsedInfo.speechiness);
+      }
+
+      if (CONFIG.isValenceEnabled) {
+        dataPoints.push('V ' + parsedInfo.valence);
+      }
+
+      if (CONFIG.isTimeSignatureEnabled) {
+        dataPoints.push('Sig ' + parsedInfo.time_signature + '/4');
       }
 
       if (CONFIG.isPopularityEnabled) {
         dataPoints.push('♥ ' + parsedInfo.popularity);
-        weights.push(0.75);
       }
 
       if (CONFIG.isYearEnabled) {
         dataPoints.push(parsedInfo.release_date);
-        weights.push(0.9);
       }
 
-      // Build Dynamic Grid Template
-      const gridParts = [];
-      weights.forEach((w, i) => {
-        gridParts.push(`minmax(0, ${w}fr)`);
-        if (i < weights.length - 1) {
-          gridParts.push('max-content');
-        }
-      });
-
-      container.style['grid-template-columns'] = gridParts.join(' ');
+      const grid =
+        dataPoints.length == 4 ? 'repeat(2, minmax(0, 1fr))' : `repeat(3, minmax(0, 1fr))`;
+      container.style['grid-template-columns'] = grid;
 
       dataPoints.forEach((text, index) => {
         const span = document.createElement('span');
         span.className = 'dj-info-classic-item';
         span.innerText = text;
         container.appendChild(span);
-
-        if (index < dataPoints.length - 1) {
-          const sep = document.createElement('span');
-          sep.className = 'dj-info-classic-separator';
-          sep.innerText = '|';
-          container.appendChild(sep);
-        }
       });
 
       djInfoColumn.innerHTML = '';
@@ -383,15 +400,12 @@ export function updateRecommendations(recommendations, trackIntersectionObserver
   if (!CONFIG.isRecommendationsEnabled) return;
   if (!recommendations) return;
 
-  const tracklist = recommendations.querySelector('.main-trackList-trackList');
-  if (tracklist) {
-    const tracks = tracklist.getElementsByClassName('main-trackList-trackListRow');
-    for (const track of tracks) {
-      const hasdjinfo = track.querySelector('.djinfo') !== null;
-      if (!track.classList.contains('dj-observed') || !hasdjinfo) {
-        track.classList.add('dj-observed');
-        trackIntersectionObserver.observe(track);
-      }
+  const tracks = recommendations.querySelectorAll('.main-trackList-trackListRow');
+  for (const track of tracks) {
+    const hasdjinfo = track.querySelector('.djinfo') !== null;
+    if (!track.classList.contains('dj-observed') || !hasdjinfo) {
+      track.classList.add('dj-observed');
+      trackIntersectionObserver.observe(track);
     }
   }
 }

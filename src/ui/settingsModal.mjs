@@ -1,5 +1,6 @@
-import { ConfigItem, ReloadItem } from './components.mjs';
+import { ConfigItem, ReloadItem, ButtonItem } from './components.mjs';
 import { CONFIG_MODAL_CSS } from './styles.mjs';
+import { clearAllCache } from '../db/trackDb.mjs';
 
 const getReact = () => Spicetify.React;
 
@@ -18,6 +19,13 @@ export function openConfig() {
     'div',
     null,
     style,
+    react.createElement(ReloadItem, {
+      name: 'Reload Window to apply changes',
+    }),
+    react.createElement(ConfigItem, {
+      name: 'Enable Rich UI',
+      field: 'isRichUiEnabled',
+    }),
     react.createElement(ConfigItem, {
       name: 'Enable in Playlists',
       field: 'isPlaylistEnabled',
@@ -47,19 +55,56 @@ export function openConfig() {
       field: 'isCamelotEnabled',
     }),
     react.createElement(ConfigItem, {
-      name: 'Enable Popularity',
-      field: 'isPopularityEnabled',
-    }),
-    react.createElement(ConfigItem, {
       name: 'Enable Year',
       field: 'isYearEnabled',
     }),
     react.createElement(ConfigItem, {
-      name: 'Enable Rich UI',
-      field: 'isRichUiEnabled',
+      name: 'Enable Popularity (♥)',
+      field: 'isPopularityEnabled',
     }),
-    react.createElement(ReloadItem, {
-      name: 'Reload Window to apply changes',
+    react.createElement(ConfigItem, {
+      name: 'Enable Energy (E)',
+      field: 'isEnergyEnabled',
+    }),
+    react.createElement(ConfigItem, {
+      name: 'Enable Danceability (D)',
+      field: 'isDanceEnabled',
+    }),
+    react.createElement(ConfigItem, {
+      name: 'Enable Acousticness (A)',
+      field: 'isAcousticnessEnabled',
+    }),
+    react.createElement(ConfigItem, {
+      name: 'Enable Instrumentalness (I)',
+      field: 'isInstrumentalnessEnabled',
+    }),
+    react.createElement(ConfigItem, {
+      name: 'Enable Liveness (L)',
+      field: 'isLivenessEnabled',
+    }),
+    react.createElement(ConfigItem, {
+      name: 'Enable Loudness (dB)',
+      field: 'isLoudnessEnabled',
+    }),
+    react.createElement(ConfigItem, {
+      name: 'Enable Speechiness (S)',
+      field: 'isSpeechinessEnabled',
+    }),
+    react.createElement(ConfigItem, {
+      name: 'Enable Valence (V)',
+      field: 'isValenceEnabled',
+    }),
+    react.createElement(ConfigItem, {
+      name: 'Enable Time Signature (?/4)',
+      field: 'isTimeSignatureEnabled',
+    }),
+    react.createElement(ButtonItem, {
+      name: 'Clear Cache',
+      btnText: 'Clear',
+      onClick: async () => {
+        await clearAllCache();
+        Spicetify.showNotification('Cache cleared!');
+      },
     }),
   );
 

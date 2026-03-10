@@ -27,60 +27,6 @@ export const extendedMetadataJsonDescriptor = {
   },
 };
 
-export const audioFeaturesJsonDescriptor = {
-  nested: {
-    Message: {
-      fields: {
-        header: { type: 'Header', id: 1 },
-        extension_kind: { type: 'uint32', id: 2 },
-        response: { type: 'Response', id: 3, rule: 'repeated' },
-      },
-    },
-    Header: {
-      fields: {
-        status: { type: 'uint32', id: 1 },
-      },
-    },
-    Response: {
-      fields: {
-        info: { type: 'ResponseInfo', id: 1 },
-        track: { type: 'string', id: 2 },
-        attributes: { type: 'AudioAttributesWrapper', id: 3, rule: 'optional' },
-      },
-    },
-    ResponseInfo: {
-      fields: {
-        status: { type: 'uint32', id: 1 },
-      },
-    },
-    AudioAttributesWrapper: {
-      fields: {
-        typestr: { type: 'string', id: 1 },
-        attributes: { type: 'AudioAttributes', id: 2 },
-      },
-    },
-    AudioAttributes: {
-      fields: {
-        bpm: { type: 'double', id: 1 },
-        key: { type: 'Key', id: 2 },
-      },
-    },
-    Key: {
-      fields: {
-        key: { type: 'string', id: 1 },
-        majorMinor: { type: 'uint32', id: 2 },
-        camelot: { type: 'CamelotKey', id: 3 },
-      },
-    },
-    CamelotKey: {
-      fields: {
-        key: { type: 'string', id: 1 },
-        backgroundColor: { type: 'string', id: 2 },
-      },
-    },
-  },
-};
-
 export const trackMetadataJsonDescriptor = {
   nested: {
     Message: {

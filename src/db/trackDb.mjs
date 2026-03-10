@@ -6,6 +6,13 @@ export class DjTrackInfo {
       tempo: Math.round(res.tempo),
       energy: Math.round(100 * res.energy),
       danceability: Math.round(100 * res.danceability),
+      acousticness: Math.round(100 * res.acousticness),
+      instrumentalness: Math.round(100 * res.instrumentalness),
+      liveness: Math.round(100 * res.liveness),
+      loudness: Math.round(10 * Number.parseFloat(res.loudness)) / 10.0,
+      speechiness: Math.round(100 * res.speechiness),
+      valence: Math.round(100 * res.valence),
+      time_signature: res.time_signature,
       popularity: resTrack.popularity,
       release_date: resTrack.release_date.split('-')[0],
     };
@@ -37,6 +44,16 @@ export const idb = {
       };
     });
     return idb.initPromise;
+  },
+  clear: async () => {
+    if (!idb.db) await idb.init();
+    return new Promise((resolve, reject) => {
+      const transaction = idb.db.transaction(['tracks'], 'readwrite');
+      const store = transaction.objectStore('tracks');
+      const request = store.clear();
+      request.onsuccess = () => resolve();
+      request.onerror = (e) => reject(e);
+    });
   },
   get: async (id) => {
     if (!idb.db) await idb.init();
@@ -150,4 +167,12 @@ export function cleanupOldStorage() {
 export function initTrackDb() {
   idb.init().then(migrateLocalStorage);
   cleanupOldStorage();
+}
+
+export async function clearAllCache() {
+  // Clear Memory
+  Object.keys(trackDb).forEach((key) => delete trackDb[key]);
+  // Clear IDB
+  await idb.clear();
+  console.log('DJ Info: All cache cleared.');
 }

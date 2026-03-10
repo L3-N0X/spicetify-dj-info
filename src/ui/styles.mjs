@@ -18,18 +18,31 @@ export function initStyles() {
     .dj-info-classic-container {
       display: grid;
       align-items: center;
+      justify-items: center;
       width: 100%;
     }
     .djInfoList {
       min-width: 0;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .dj-info-now-playing {
+      margin-inline: 4px;
+      min-width: 34px;
+      font-size: 11px;
+      text-align: center;
+      overflow-y: auto;
+      height: 100%;
+      padding: 8px 0;
+      scrollbar-width: none;
+    }
+    .dj-info-now-playing-parent {
+      height: 100%;
     }
     .dj-info-classic-item {
       display: block;
-      font-size: 13px;
+      font-size: 12px;
       white-space: nowrap;
-      padding: 0 2px;
-      overflow: hidden;
-      text-overflow: ellipsis;
       text-align: center;
     }
     .dj-info-classic-separator {
@@ -61,10 +74,13 @@ export function initStyles() {
       font-size: 11px;
       opacity: 0.8;
     }
+    .dj-info-row-info {
+      white-space: nowrap;
+    }
     .dj-info-separator {
       opacity: 0.6;
       font-size: 0.8em;
-      padding: 0 4px;
+      padding: 0 1px;
     }
     .dj-info-tag {
       padding: 1px 6px;
@@ -74,7 +90,7 @@ export function initStyles() {
       font-size: 11px;
       text-shadow: none;
     }
-    
+
     :root {
       --camelot-1A: #00D3AA;
       --camelot-1B: #00CC33;

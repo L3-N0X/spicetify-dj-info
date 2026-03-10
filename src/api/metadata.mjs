@@ -1,12 +1,10 @@
 import {
   extendedMetadataJsonDescriptor,
-  audioFeaturesJsonDescriptor,
   trackMetadataJsonDescriptor,
 } from '../constants/protobuf.mjs';
 import { trackDb, idb, DjTrackInfo } from '../db/trackDb.mjs';
 
 let extendedMetadataRequest = null;
-let audioFeaturesResponse = null;
 let trackMetadataResponse = null;
 
 function getProtobufTypes() {
@@ -14,16 +12,12 @@ function getProtobufTypes() {
     extendedMetadataRequest = globalThis.protobuf.Root.fromJSON(
       extendedMetadataJsonDescriptor,
     ).lookup('Message');
-    audioFeaturesResponse = globalThis.protobuf.Root.fromJSON(audioFeaturesJsonDescriptor).lookup(
-      'Message',
-    );
     trackMetadataResponse = globalThis.protobuf.Root.fromJSON(trackMetadataJsonDescriptor).lookup(
       'Message',
     );
   }
   return {
     extendedMetadataRequest,
-    audioFeaturesResponse,
     trackMetadataResponse,
   };
 }
@@ -70,22 +64,50 @@ export async function getExtendedMetadata(entity_uris, extension_kind) {
   return new Uint8Array(await resp.arrayBuffer());
 }
 
-export async function getFeatures(ids) {
-  const { audioFeaturesResponse } = getProtobufTypes();
-  const buf = await getExtendedMetadata(
-    ids.map((id) => `spotify:track:${id}`),
-    222,
-  );
-  const msg = audioFeaturesResponse.decode(buf);
+const chunkArray = (array, size) => {
+  const chunks = [];
+  for (let i = 0; i < array.length; i += size) {
+    chunks.push(array.slice(i, i + size));
+  }
+  return chunks;
+};
 
-  return msg.response.map((resp) => {
-    if (!resp.attributes) return null;
-    const attributes = resp.attributes.attributes;
+export async function getFeatures(ids) {
+  const chunks = chunkArray(ids, 100);
+  const allFeatures = [];
+
+  for (const chunk of chunks) {
+    const idsString = chunk.join(',');
+    try {
+      const response = await Spicetify.CosmosAsync.get(
+        `https://spclient.wg.spotify.com/audio-attributes/v1/audio-features?ids=${idsString}`,
+      );
+
+      if (response && response.audio_features) {
+        allFeatures.push(...response.audio_features);
+      }
+    } catch (error) {
+      console.error('DJ Info: Error fetching audio features:', error);
+    }
+  }
+
+  return allFeatures.map((features) => {
+    if (!features) return null;
+
     return {
-      id: resp.track.split(':')[2],
-      tempo: attributes.bpm,
-      key: 'C C# D D# E F F# G G# A A# B'.split(' ').indexOf(attributes.key.key),
-      mode: attributes.key.majorMinor - 1,
+      id: features.id,
+      tempo: features.tempo,
+      key: features.key,
+      mode: features.mode,
+      danceability: features.danceability,
+      energy: features.energy,
+      acousticness: features.acousticness,
+      instrumentalness: features.instrumentalness,
+      liveness: features.liveness,
+      loudness: features.loudness,
+      speechiness: features.speechiness,
+      valence: features.valence,
+      time_signature: features.time_signature,
     };
   });
 }
@@ -128,22 +150,34 @@ export async function getTrackInfo(id) {
   return info;
 }
 
-export async function getTrackInfoBatch(ids) {
-  // 1. Identify what's missing from Memory
-  const missingFromMem = ids.filter((id) => !trackDb[id]);
+function isInfoComplete(info) {
+  return (
+    info &&
+    info.acousticness !== undefined &&
+    info.acousticness !== null &&
+    !isNaN(info.acousticness)
+  );
+}
 
-  // 2. Try to fetch missing from IDB
-  let idsToFetch = missingFromMem;
-  if (missingFromMem.length > 0) {
-    const fromIdb = await idb.getMany(missingFromMem);
+export async function getTrackInfoBatch(ids) {
+  // 1. Identify what is MISSING or INCOMPLETE in Memory
+  const needsRefetch = ids.filter((id) => !trackDb[id] || !isInfoComplete(trackDb[id]));
+
+  // 2. Try to fetch from IDB for those we don't have complete in Memory
+  if (needsRefetch.length > 0) {
+    const fromIdb = await idb.getMany(needsRefetch);
     fromIdb.forEach((item) => {
-      trackDb[item.id] = item.val;
+      // Only use IDB value if it's complete or if we don't have anything in memory
+      if (isInfoComplete(item.val) || !trackDb[item.id]) {
+        trackDb[item.id] = item.val;
+      }
     });
-    // Recalculate what is TRULY missing (not in Mem AND not in IDB)
-    idsToFetch = missingFromMem.filter((id) => !trackDb[id]);
   }
 
-  // 3. Fetch from Network
+  // 3. Identify what is STILL missing or incomplete after checking IDB
+  const idsToFetch = ids.filter((id) => !trackDb[id] || !isInfoComplete(trackDb[id]));
+
+  // 4. Fetch from Network
   if (idsToFetch.length > 0) {
     try {
       const results = await Promise.allSettled([
