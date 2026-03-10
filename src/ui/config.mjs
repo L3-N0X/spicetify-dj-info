@@ -9,6 +9,13 @@ const DEFAULT_CONFIG = {
   isPopularityEnabled: true,
   isEnergyEnabled: false,
   isDanceEnabled: false,
+  isAcousticnessEnabled: false,
+  isInstrumentalnessEnabled: false,
+  isLivenessEnabled: false,
+  isLoudnessEnabled: false,
+  isSpeechinessEnabled: false,
+  isValenceEnabled: false,
+  isTimeSignatureEnabled: false,
   isYearEnabled: true,
   isRichUiEnabled: true,
 };
@@ -19,15 +26,12 @@ export function loadConfig() {
   try {
     CONFIG = JSON.parse(Spicetify.LocalStorage.get('dj-info-config') || 'error');
 
-    // Make sure energy and dance are disabled because it's not available anymore
-    if (CONFIG.isEnergyEnabled) {
-      CONFIG.isEnergyEnabled = false;
-      saveConfig();
-    }
-    if (CONFIG.isDanceEnabled) {
-      CONFIG.isDanceEnabled = false;
-      saveConfig();
-    }
+    // Ensure all new keys exist
+    Object.keys(DEFAULT_CONFIG).forEach((key) => {
+      if (CONFIG[key] === undefined) {
+        CONFIG[key] = DEFAULT_CONFIG[key];
+      }
+    });
   } catch {
     CONFIG = { ...DEFAULT_CONFIG };
   }

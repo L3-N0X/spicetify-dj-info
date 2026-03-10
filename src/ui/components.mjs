@@ -69,3 +69,25 @@ export const ReloadItem = ({ name, disabled = false }) => {
     ),
   );
 };
+
+export const ButtonItem = ({ name, btnText, onClick, disabled = false }) => {
+  const react = getReact();
+  return react.createElement(
+    'div',
+    { className: 'setting-row' },
+    react.createElement('label', { className: 'col description' }, name),
+    react.createElement(
+      'div',
+      { className: 'col action' },
+      react.createElement(
+        'button',
+        {
+          className: 'btn',
+          disabled,
+          onClick,
+        },
+        btnText,
+      ),
+    ),
+  );
+};

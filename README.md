@@ -84,6 +84,12 @@ To toggle the visibility of DJ information, follow these steps:
 
 ## 📜 Changelog
 
+### V 2.4.0
+
+- Updated to different API
+- Improved styling
+- Added new options for new audio features
+
 ### V 2.3.3
 
 - Fixed log spam

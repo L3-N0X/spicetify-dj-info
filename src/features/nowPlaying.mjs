@@ -42,9 +42,16 @@ export async function updateNowPlayingWidget() {
     const display_text = [];
     if (CONFIG.isKeyEnabled || CONFIG.isCamelotEnabled)
       display_text.push(`${getKeyInNotation(info.key, info.mode)}`);
-    if (CONFIG.isBPMEnabled) display_text.push(`${info.tempo} ♫`);
+    if (CONFIG.isBPMEnabled) display_text.push(`${Math.round(info.tempo)} ♫`);
     if (CONFIG.isEnergyEnabled) display_text.push(`E ${info.energy}`);
     if (CONFIG.isDanceEnabled) display_text.push(`D ${info.danceability}`);
+    if (CONFIG.isAcousticnessEnabled) display_text.push(`A ${info.acousticness}`);
+    if (CONFIG.isInstrumentalnessEnabled) display_text.push(`I ${info.instrumentalness}`);
+    if (CONFIG.isLivenessEnabled) display_text.push(`L ${info.liveness}`);
+    if (CONFIG.isLoudnessEnabled) display_text.push(`dB ${Math.round(info.loudness * 10) / 10}`);
+    if (CONFIG.isSpeechinessEnabled) display_text.push(`S ${info.speechiness}`);
+    if (CONFIG.isValenceEnabled) display_text.push(`V ${info.valence}`);
+    if (CONFIG.isTimeSignatureEnabled) display_text.push(`${info.time_signature}/4`);
     if (CONFIG.isPopularityEnabled) display_text.push(`♥ ${info.popularity}`);
     if (CONFIG.isYearEnabled) display_text.push(`${info.release_date}`);
 

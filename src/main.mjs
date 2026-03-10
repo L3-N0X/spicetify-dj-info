@@ -104,11 +104,6 @@ import {
       if (!nowPlayingWidget.querySelector('.dj-info-now-playing')) {
         const nowPlayingWidgetdjInfoData = document.createElement('p');
         nowPlayingWidgetdjInfoData.classList.add('dj-info-now-playing');
-        nowPlayingWidgetdjInfoData.style.marginLeft = '4px';
-        nowPlayingWidgetdjInfoData.style.marginRight = '4px';
-        nowPlayingWidgetdjInfoData.style.minWidth = '34px';
-        nowPlayingWidgetdjInfoData.style.fontSize = '11px';
-        nowPlayingWidgetdjInfoData.style.textAlign = 'center';
 
         const trackInfo = nowPlayingWidget.querySelector('.main-trackInfo-container');
         if (trackInfo) {
@@ -118,6 +113,10 @@ import {
             trackInfo.after(nowPlayingWidgetdjInfoData);
           }
         }
+
+        nowPlayingWidget.classList.add('dj-info-now-playing-parent');
+        nowPlayingWidget.parentElement.classList.add('dj-info-now-playing-parent');
+        nowPlayingWidget.parentElement.parentElement.classList.add('dj-info-now-playing-parent');
 
         setNowPlayingElement(nowPlayingWidgetdjInfoData);
         updateNowPlayingWidget();
