@@ -1,3 +1,35 @@
+
+<div align="right">
+  <details>
+    <summary >🌐 Language</summary>
+    <div>
+      <div align="center">
+        <a href="https://openaitx.github.io/view.html?user=L3-N0X&project=spicetify-dj-info&lang=en">English</a>
+        | <a href="https://openaitx.github.io/view.html?user=L3-N0X&project=spicetify-dj-info&lang=zh-CN">简体中文</a>
+        | <a href="https://openaitx.github.io/view.html?user=L3-N0X&project=spicetify-dj-info&lang=zh-TW">繁體中文</a>
+        | <a href="https://openaitx.github.io/view.html?user=L3-N0X&project=spicetify-dj-info&lang=ja">日本語</a>
+        | <a href="https://openaitx.github.io/view.html?user=L3-N0X&project=spicetify-dj-info&lang=ko">한국어</a>
+        | <a href="https://openaitx.github.io/view.html?user=L3-N0X&project=spicetify-dj-info&lang=hi">हिन्दी</a>
+        | <a href="https://openaitx.github.io/view.html?user=L3-N0X&project=spicetify-dj-info&lang=th">ไทย</a>
+        | <a href="https://openaitx.github.io/view.html?user=L3-N0X&project=spicetify-dj-info&lang=fr">Français</a>
+        | <a href="https://openaitx.github.io/view.html?user=L3-N0X&project=spicetify-dj-info&lang=de">Deutsch</a>
+        | <a href="https://openaitx.github.io/view.html?user=L3-N0X&project=spicetify-dj-info&lang=es">Español</a>
+        | <a href="https://openaitx.github.io/view.html?user=L3-N0X&project=spicetify-dj-info&lang=it">Italiano</a>
+        | <a href="https://openaitx.github.io/view.html?user=L3-N0X&project=spicetify-dj-info&lang=ru">Русский</a>
+        | <a href="https://openaitx.github.io/view.html?user=L3-N0X&project=spicetify-dj-info&lang=pt">Português</a>
+        | <a href="https://openaitx.github.io/view.html?user=L3-N0X&project=spicetify-dj-info&lang=nl">Nederlands</a>
+        | <a href="https://openaitx.github.io/view.html?user=L3-N0X&project=spicetify-dj-info&lang=pl">Polski</a>
+        | <a href="https://openaitx.github.io/view.html?user=L3-N0X&project=spicetify-dj-info&lang=ar">العربية</a>
+        | <a href="https://openaitx.github.io/view.html?user=L3-N0X&project=spicetify-dj-info&lang=fa">فارسی</a>
+        | <a href="https://openaitx.github.io/view.html?user=L3-N0X&project=spicetify-dj-info&lang=tr">Türkçe</a>
+        | <a href="https://openaitx.github.io/view.html?user=L3-N0X&project=spicetify-dj-info&lang=vi">Tiếng Việt</a>
+        | <a href="https://openaitx.github.io/view.html?user=L3-N0X&project=spicetify-dj-info&lang=id">Bahasa Indonesia</a>
+        | <a href="https://openaitx.github.io/view.html?user=L3-N0X&project=spicetify-dj-info&lang=as">অসমীয়া</
+      </div>
+    </div>
+  </details>
+</div>
+
 # Spicetify DJ Info
 
 Welcome to the Spicetify DJ Info Extension! This extension enhances your Spicetify experience by providing valuable song analysis data for each track, including Key, BPM, Popularity and Year. With this extension, you can gain deeper insights into your music library and discover songs perfectly fitting into your DJ set or Playlist.
