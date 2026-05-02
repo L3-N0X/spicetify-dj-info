@@ -43,6 +43,21 @@ const getVisibleColumnCount = (row) => {
   return count;
 };
 
+const getDjInfoInsertionAnchor = (row) => {
+  const children = Array.from(row.children);
+  const lastNativeVariableColumn = children.reverse().find((child) => {
+    return (
+      child.classList.contains('main-trackList-rowSectionVariable') &&
+      Array.from(child.classList).every((className) => className.startsWith('main-'))
+    );
+  });
+
+  return (
+    (lastNativeVariableColumn && lastNativeVariableColumn.nextElementSibling) ||
+    row.querySelector('.main-trackList-rowSectionEnd')
+  );
+};
+
 const updateTrackGrid = (track, isRecommendation) => {
   const MIN_WIDTH = 550;
   const width = window.innerWidth;
@@ -131,17 +146,17 @@ export function addInfoToTrack(track, isRecommendation = false) {
 
   let djInfoColumn = track.querySelector('.djInfoList');
   if (!djInfoColumn) {
-    let lastColumn = track.querySelector('.main-trackList-rowSectionEnd');
-    if (lastColumn) {
+    let insertionAnchor = getDjInfoInsertionAnchor(track);
+    if (insertionAnchor) {
       let colIndexInt = getVisibleColumnCount(track);
-      lastColumn.setAttribute('aria-colindex', (colIndexInt + 1).toString());
+      insertionAnchor.setAttribute('aria-colindex', (colIndexInt + 1).toString());
 
       djInfoColumn = document.createElement('div');
       djInfoColumn.setAttribute('aria-colindex', colIndexInt.toString());
       djInfoColumn.style.display = 'flex';
       djInfoColumn.classList.add('main-trackList-rowSectionVariable');
       djInfoColumn.classList.add('djInfoList');
-      track.insertBefore(djInfoColumn, lastColumn);
+      track.insertBefore(djInfoColumn, insertionAnchor);
     }
   }
 
@@ -321,16 +336,17 @@ export function updateTracklist(tracklist, trackIntersectionObserver) {
 
   const tracklistHeader = tracklist.querySelector('.main-trackList-trackListHeaderRow');
   if (tracklistHeader && !tracklistHeader.querySelector('.djinfoheader')) {
-    let lastColumn = tracklistHeader.querySelector('.main-trackList-rowSectionEnd');
+    let insertionAnchor = getDjInfoInsertionAnchor(tracklistHeader);
     let visibleCols = getVisibleColumnCount(tracklistHeader);
 
-    lastColumn.setAttribute('aria-colindex', (visibleCols + 1).toString());
+    if (!insertionAnchor) return;
+    insertionAnchor.setAttribute('aria-colindex', (visibleCols + 1).toString());
 
     let headerColumn = document.createElement('div');
     headerColumn.style.display = 'flex';
     headerColumn.classList.add('main-trackList-rowSectionVariable');
     headerColumn.role = 'columnheader';
-    tracklistHeader.insertBefore(headerColumn, lastColumn);
+    tracklistHeader.insertBefore(headerColumn, insertionAnchor);
 
     if (CONFIG.isRichUiEnabled) {
       switch (visibleCols) {
