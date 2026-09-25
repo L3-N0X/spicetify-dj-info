@@ -72,44 +72,85 @@ const chunkArray = (array, size) => {
   return chunks;
 };
 
+function normalizeFeatures(features, id) {
+  if (!features || features.error) return null;
+  const record = features.audio_features?.[0] ?? features;
+  if (!record || record.error || record.tempo == null) return null;
+
+  return {
+    id: record.id ?? id,
+    tempo: record.tempo,
+    key: record.key,
+    mode: record.mode,
+    danceability: record.danceability,
+    energy: record.energy,
+    acousticness: record.acousticness,
+    instrumentalness: record.instrumentalness,
+    liveness: record.liveness,
+    loudness: record.loudness,
+    speechiness: record.speechiness,
+    valence: record.valence,
+    time_signature: record.time_signature,
+  };
+}
+
+function authHeaders() {
+  return {
+    Authorization: `Bearer ${Spicetify.Platform.AuthorizationAPI.getState().token.accessToken}`,
+    'Spotify-App-Version': Spicetify.Platform.version,
+    'App-Platform': Spicetify.Platform.PlatformData.app_platform,
+    Accept: 'application/json',
+  };
+}
+
+// Spotify 1.3 fails to load remote-config-resolver, so CosmosAsync has no
+// resolver for these URLs and rejects them before the request is sent.
+async function authorizedGet(url) {
+  const resp = await fetch(url, { headers: authHeaders() });
+  if (!resp.ok) {
+    throw new Error(`GET ${url} failed with ${resp.status}`);
+  }
+  return resp.json();
+}
+
+async function getFeaturesForChunk(chunk) {
+  try {
+    const response = await authorizedGet(
+      `https://spclient.wg.spotify.com/audio-attributes/v1/audio-features?ids=${chunk.join(',')}`,
+    );
+    if (Array.isArray(response?.audio_features)) {
+      return response.audio_features.map((features, index) =>
+        normalizeFeatures(features, chunk[index]),
+      );
+    }
+  } catch (error) {
+    console.error('DJ Info: batch audio features request failed:', error);
+  }
+
+  return Promise.all(
+    chunk.map(async (id) => {
+      try {
+        const response = await authorizedGet(
+          `https://spclient.wg.spotify.com/audio-attributes/v1/audio-features/${id}?format=json`,
+        );
+        return normalizeFeatures(response, id);
+      } catch (error) {
+        console.error('DJ Info: Error fetching audio features:', error);
+        return null;
+      }
+    }),
+  );
+}
+
 export async function getFeatures(ids) {
   const chunks = chunkArray(ids, 100);
   const allFeatures = [];
 
   for (const chunk of chunks) {
-    const idsString = chunk.join(',');
-    try {
-      const response = await Spicetify.CosmosAsync.get(
-        `https://spclient.wg.spotify.com/audio-attributes/v1/audio-features?ids=${idsString}`,
-      );
-
-      if (response && response.audio_features) {
-        allFeatures.push(...response.audio_features);
-      }
-    } catch (error) {
-      console.error('DJ Info: Error fetching audio features:', error);
-    }
+    allFeatures.push(...(await getFeaturesForChunk(chunk)));
   }
 
-  return allFeatures.map((features) => {
-    if (!features) return null;
-
-    return {
-      id: features.id,
-      tempo: features.tempo,
-      key: features.key,
-      mode: features.mode,
-      danceability: features.danceability,
-      energy: features.energy,
-      acousticness: features.acousticness,
-      instrumentalness: features.instrumentalness,
-      liveness: features.liveness,
-      loudness: features.loudness,
-      speechiness: features.speechiness,
-      valence: features.valence,
-      time_signature: features.time_signature,
-    };
-  });
+  return allFeatures;
 }
 
 export async function getTrackFeatures(ids) {
