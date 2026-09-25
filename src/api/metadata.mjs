@@ -94,27 +94,60 @@ function normalizeFeatures(features, id) {
   };
 }
 
+function authHeaders() {
+  return {
+    Authorization: `Bearer ${Spicetify.Platform.AuthorizationAPI.getState().token.accessToken}`,
+    'Spotify-App-Version': Spicetify.Platform.version,
+    'App-Platform': Spicetify.Platform.PlatformData.app_platform,
+    Accept: 'application/json',
+  };
+}
+
+// Spotify 1.3 fails to load remote-config-resolver, so CosmosAsync has no
+// resolver for these URLs and rejects them before the request is sent.
+async function authorizedGet(url) {
+  const resp = await fetch(url, { headers: authHeaders() });
+  if (!resp.ok) {
+    throw new Error(`GET ${url} failed with ${resp.status}`);
+  }
+  return resp.json();
+}
+
+async function getFeaturesForChunk(chunk) {
+  try {
+    const response = await authorizedGet(
+      `https://spclient.wg.spotify.com/audio-attributes/v1/audio-features?ids=${chunk.join(',')}`,
+    );
+    if (Array.isArray(response?.audio_features)) {
+      return response.audio_features.map((features, index) =>
+        normalizeFeatures(features, chunk[index]),
+      );
+    }
+  } catch (error) {
+    console.error('DJ Info: batch audio features request failed:', error);
+  }
+
+  return Promise.all(
+    chunk.map(async (id) => {
+      try {
+        const response = await authorizedGet(
+          `https://spclient.wg.spotify.com/audio-attributes/v1/audio-features/${id}?format=json`,
+        );
+        return normalizeFeatures(response, id);
+      } catch (error) {
+        console.error('DJ Info: Error fetching audio features:', error);
+        return null;
+      }
+    }),
+  );
+}
+
 export async function getFeatures(ids) {
-  // Spotify 1.3+ no longer registers the batch `?ids=` route. The per-track
-  // path is the resolver lyrics-plus uses, and it returns one feature object.
-  const chunks = chunkArray(ids, 6);
+  const chunks = chunkArray(ids, 100);
   const allFeatures = [];
 
   for (const chunk of chunks) {
-    const results = await Promise.all(
-      chunk.map(async (id) => {
-        try {
-          const response = await Spicetify.CosmosAsync.get(
-            `https://spclient.wg.spotify.com/audio-attributes/v1/audio-features/${id}?format=json`,
-          );
-          return normalizeFeatures(response, id);
-        } catch (error) {
-          console.error('DJ Info: Error fetching audio features:', error);
-          return null;
-        }
-      }),
-    );
-    allFeatures.push(...results);
+    allFeatures.push(...(await getFeaturesForChunk(chunk)));
   }
 
   return allFeatures;
