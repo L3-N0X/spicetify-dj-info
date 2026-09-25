@@ -84,6 +84,10 @@ To toggle the visibility of DJ information, follow these steps:
 
 ## 📜 Changelog
 
+### V 2.4.2
+
+- Fixed audio features on Spotify 1.3 by requesting each track from the per-track spclient endpoint
+
 ### V 2.4.0
 
 - Updated to different API

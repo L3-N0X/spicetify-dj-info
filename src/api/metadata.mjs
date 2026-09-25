@@ -72,44 +72,52 @@ const chunkArray = (array, size) => {
   return chunks;
 };
 
+function normalizeFeatures(features, id) {
+  if (!features || features.error) return null;
+  const record = features.audio_features?.[0] ?? features;
+  if (!record || record.error || record.tempo == null) return null;
+
+  return {
+    id: record.id ?? id,
+    tempo: record.tempo,
+    key: record.key,
+    mode: record.mode,
+    danceability: record.danceability,
+    energy: record.energy,
+    acousticness: record.acousticness,
+    instrumentalness: record.instrumentalness,
+    liveness: record.liveness,
+    loudness: record.loudness,
+    speechiness: record.speechiness,
+    valence: record.valence,
+    time_signature: record.time_signature,
+  };
+}
+
 export async function getFeatures(ids) {
-  const chunks = chunkArray(ids, 100);
+  // Spotify 1.3+ no longer registers the batch `?ids=` route. The per-track
+  // path is the resolver lyrics-plus uses, and it returns one feature object.
+  const chunks = chunkArray(ids, 6);
   const allFeatures = [];
 
   for (const chunk of chunks) {
-    const idsString = chunk.join(',');
-    try {
-      const response = await Spicetify.CosmosAsync.get(
-        `https://spclient.wg.spotify.com/audio-attributes/v1/audio-features?ids=${idsString}`,
-      );
-
-      if (response && response.audio_features) {
-        allFeatures.push(...response.audio_features);
-      }
-    } catch (error) {
-      console.error('DJ Info: Error fetching audio features:', error);
-    }
+    const results = await Promise.all(
+      chunk.map(async (id) => {
+        try {
+          const response = await Spicetify.CosmosAsync.get(
+            `https://spclient.wg.spotify.com/audio-attributes/v1/audio-features/${id}?format=json`,
+          );
+          return normalizeFeatures(response, id);
+        } catch (error) {
+          console.error('DJ Info: Error fetching audio features:', error);
+          return null;
+        }
+      }),
+    );
+    allFeatures.push(...results);
   }
 
-  return allFeatures.map((features) => {
-    if (!features) return null;
-
-    return {
-      id: features.id,
-      tempo: features.tempo,
-      key: features.key,
-      mode: features.mode,
-      danceability: features.danceability,
-      energy: features.energy,
-      acousticness: features.acousticness,
-      instrumentalness: features.instrumentalness,
-      liveness: features.liveness,
-      loudness: features.loudness,
-      speechiness: features.speechiness,
-      valence: features.valence,
-      time_signature: features.time_signature,
-    };
-  });
+  return allFeatures;
 }
 
 export async function getTrackFeatures(ids) {
