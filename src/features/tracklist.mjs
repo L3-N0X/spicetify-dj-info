@@ -208,18 +208,28 @@ export function addInfoToTrack(track, isRecommendation = false) {
       bottomRow.className = 'dj-info-row-bottom';
 
       let bottomStats = [];
-      if (CONFIG.isEnergyEnabled) bottomStats.push(`E ${parsedInfo.energy}`);
-      if (CONFIG.isDanceEnabled) bottomStats.push(`D ${parsedInfo.danceability}`);
-      if (CONFIG.isAcousticnessEnabled) bottomStats.push(`A ${parsedInfo.acousticness}`);
-      if (CONFIG.isInstrumentalnessEnabled) bottomStats.push(`I ${parsedInfo.instrumentalness}`);
-      if (CONFIG.isLivenessEnabled) bottomStats.push(`L ${parsedInfo.liveness}`);
-      if (CONFIG.isLoudnessEnabled)
+      if (CONFIG.isEnergyEnabled && Number.isFinite(parsedInfo.energy))
+        bottomStats.push(`E ${parsedInfo.energy}`);
+      if (CONFIG.isDanceEnabled && Number.isFinite(parsedInfo.danceability))
+        bottomStats.push(`D ${parsedInfo.danceability}`);
+      if (CONFIG.isAcousticnessEnabled && Number.isFinite(parsedInfo.acousticness))
+        bottomStats.push(`A ${parsedInfo.acousticness}`);
+      if (CONFIG.isInstrumentalnessEnabled && Number.isFinite(parsedInfo.instrumentalness))
+        bottomStats.push(`I ${parsedInfo.instrumentalness}`);
+      if (CONFIG.isLivenessEnabled && Number.isFinite(parsedInfo.liveness))
+        bottomStats.push(`L ${parsedInfo.liveness}`);
+      if (CONFIG.isLoudnessEnabled && Number.isFinite(parsedInfo.loudness))
         bottomStats.push(`dB ${Math.round(parsedInfo.loudness * 10) / 10}`);
-      if (CONFIG.isSpeechinessEnabled) bottomStats.push(`S ${parsedInfo.speechiness}`);
-      if (CONFIG.isValenceEnabled) bottomStats.push(`V ${parsedInfo.valence}`);
-      if (CONFIG.isTimeSignatureEnabled) bottomStats.push(`${parsedInfo.time_signature}/4`);
-      if (CONFIG.isPopularityEnabled) bottomStats.push(`♥ ${parsedInfo.popularity}`);
-      if (CONFIG.isYearEnabled) bottomStats.push(`${parsedInfo.release_date}`);
+      if (CONFIG.isSpeechinessEnabled && Number.isFinite(parsedInfo.speechiness))
+        bottomStats.push(`S ${parsedInfo.speechiness}`);
+      if (CONFIG.isValenceEnabled && Number.isFinite(parsedInfo.valence))
+        bottomStats.push(`V ${parsedInfo.valence}`);
+      if (CONFIG.isTimeSignatureEnabled && Number.isFinite(parsedInfo.time_signature))
+        bottomStats.push(`${parsedInfo.time_signature}/4`);
+      if (CONFIG.isPopularityEnabled && Number.isFinite(parsedInfo.popularity))
+        bottomStats.push(`♥ ${parsedInfo.popularity}`);
+      if (CONFIG.isYearEnabled && parsedInfo.release_date)
+        bottomStats.push(`${parsedInfo.release_date}`);
 
       if (bottomStats.length > 0) {
         bottomStats.forEach((stat, i) => {
@@ -261,47 +271,47 @@ export function addInfoToTrack(track, isRecommendation = false) {
         dataPoints.push(Math.round(parsedInfo.tempo) + ' ♫');
       }
 
-      if (CONFIG.isEnergyEnabled) {
+      if (CONFIG.isEnergyEnabled && Number.isFinite(parsedInfo.energy)) {
         dataPoints.push('E ' + parsedInfo.energy);
       }
 
-      if (CONFIG.isDanceEnabled) {
+      if (CONFIG.isDanceEnabled && Number.isFinite(parsedInfo.danceability)) {
         dataPoints.push('D ' + parsedInfo.danceability);
       }
 
-      if (CONFIG.isAcousticnessEnabled) {
+      if (CONFIG.isAcousticnessEnabled && Number.isFinite(parsedInfo.acousticness)) {
         dataPoints.push('A ' + parsedInfo.acousticness);
       }
 
-      if (CONFIG.isInstrumentalnessEnabled) {
+      if (CONFIG.isInstrumentalnessEnabled && Number.isFinite(parsedInfo.instrumentalness)) {
         dataPoints.push('I ' + parsedInfo.instrumentalness);
       }
 
-      if (CONFIG.isLivenessEnabled) {
+      if (CONFIG.isLivenessEnabled && Number.isFinite(parsedInfo.liveness)) {
         dataPoints.push('L ' + parsedInfo.liveness);
       }
 
-      if (CONFIG.isLoudnessEnabled) {
+      if (CONFIG.isLoudnessEnabled && Number.isFinite(parsedInfo.loudness)) {
         dataPoints.push('dB ' + Math.round(parsedInfo.loudness * 10) / 10);
       }
 
-      if (CONFIG.isSpeechinessEnabled) {
+      if (CONFIG.isSpeechinessEnabled && Number.isFinite(parsedInfo.speechiness)) {
         dataPoints.push('S ' + parsedInfo.speechiness);
       }
 
-      if (CONFIG.isValenceEnabled) {
+      if (CONFIG.isValenceEnabled && Number.isFinite(parsedInfo.valence)) {
         dataPoints.push('V ' + parsedInfo.valence);
       }
 
-      if (CONFIG.isTimeSignatureEnabled) {
+      if (CONFIG.isTimeSignatureEnabled && Number.isFinite(parsedInfo.time_signature)) {
         dataPoints.push('Sig ' + parsedInfo.time_signature + '/4');
       }
 
-      if (CONFIG.isPopularityEnabled) {
+      if (CONFIG.isPopularityEnabled && Number.isFinite(parsedInfo.popularity)) {
         dataPoints.push('♥ ' + parsedInfo.popularity);
       }
 
-      if (CONFIG.isYearEnabled) {
+      if (CONFIG.isYearEnabled && parsedInfo.release_date) {
         dataPoints.push(parsedInfo.release_date);
       }
 

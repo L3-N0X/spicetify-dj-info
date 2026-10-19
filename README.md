@@ -84,6 +84,10 @@ To toggle the visibility of DJ information, follow these steps:
 
 ## 📜 Changelog
 
+### V 2.4.3
+
+- Fixed key and BPM on Spotify 1.3.3+ by reading extended-metadata trait AUDIO_ATTRIBUTES_V2. Danceability, energy, and the other analysis fields are no longer returned by Spotify
+
 ### V 2.4.2
 
 - Fixed audio features on Spotify 1.3 by loading them with fetch, because Cosmos has no resolver for these URLs after remote-config-resolver returns 404

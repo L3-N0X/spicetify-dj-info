@@ -1,20 +1,25 @@
 export class DjTrackInfo {
   static fromQueries(res, resTrack) {
+    const percent = (value) =>
+      typeof value === 'number' && Number.isFinite(value) ? Math.round(100 * value) : null;
     return {
       key: res.key,
       mode: res.mode,
       tempo: Math.round(res.tempo),
-      energy: Math.round(100 * res.energy),
-      danceability: Math.round(100 * res.danceability),
-      acousticness: Math.round(100 * res.acousticness),
-      instrumentalness: Math.round(100 * res.instrumentalness),
-      liveness: Math.round(100 * res.liveness),
-      loudness: Math.round(10 * Number.parseFloat(res.loudness)) / 10.0,
-      speechiness: Math.round(100 * res.speechiness),
-      valence: Math.round(100 * res.valence),
-      time_signature: res.time_signature,
+      energy: percent(res.energy),
+      danceability: percent(res.danceability),
+      acousticness: percent(res.acousticness),
+      instrumentalness: percent(res.instrumentalness),
+      liveness: percent(res.liveness),
+      loudness:
+        typeof res.loudness === 'number' && Number.isFinite(res.loudness)
+          ? Math.round(10 * res.loudness) / 10.0
+          : null,
+      speechiness: percent(res.speechiness),
+      valence: percent(res.valence),
+      time_signature: Number.isFinite(res.time_signature) ? res.time_signature : null,
       popularity: resTrack.popularity,
-      release_date: resTrack.release_date.split('-')[0],
+      release_date: resTrack.release_date ? resTrack.release_date.split('-')[0] : null,
     };
   }
 }
