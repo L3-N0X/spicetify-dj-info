@@ -84,6 +84,11 @@ To toggle the visibility of DJ information, follow these steps:
 
 ## 📜 Changelog
 
+### V 2.4.3
+
+- Fixed DJ info missing from playlist and Liked Songs rows on Spotify 1.3.4, which no longer passes the track uri down to the row
+- Show DJ info beside the current song in the bottom-left player on Spotify 1.3.5, which no longer uses the old now-playing class names
+
 ### V 2.4.2
 
 - Fixed audio features on Spotify 1.3 by loading them with fetch, because Cosmos has no resolver for these URLs after remote-config-resolver returns 404

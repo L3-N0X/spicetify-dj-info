@@ -21,6 +21,8 @@ import {
   initNowPlayingListener,
   setNowPlayingElement,
   getNowPlayingElement,
+  findNowPlayingWidget,
+  findTrackInfo,
 } from './features/nowPlaying.mjs';
 
 (async function djInfoList() {
@@ -98,25 +100,27 @@ import {
     }
 
     oldNowPlayingWidget = nowPlayingWidget;
-    nowPlayingWidget = document.querySelector('.main-nowPlayingWidget-nowPlaying');
+    nowPlayingWidget = findNowPlayingWidget();
 
     if (nowPlayingWidget && !nowPlayingWidget.isEqualNode(oldNowPlayingWidget)) {
       if (!nowPlayingWidget.querySelector('.dj-info-now-playing')) {
         const nowPlayingWidgetdjInfoData = document.createElement('p');
         nowPlayingWidgetdjInfoData.classList.add('dj-info-now-playing');
 
-        const trackInfo = nowPlayingWidget.querySelector('.main-trackInfo-container');
+        const trackInfo = findTrackInfo(nowPlayingWidget);
         if (trackInfo) {
           if (CONFIG.isLeftPlayingEnabled) {
             trackInfo.before(nowPlayingWidgetdjInfoData);
           } else {
             trackInfo.after(nowPlayingWidgetdjInfoData);
           }
+        } else {
+          nowPlayingWidget.append(nowPlayingWidgetdjInfoData);
         }
 
         nowPlayingWidget.classList.add('dj-info-now-playing-parent');
-        nowPlayingWidget.parentElement.classList.add('dj-info-now-playing-parent');
-        nowPlayingWidget.parentElement.parentElement.classList.add('dj-info-now-playing-parent');
+        nowPlayingWidget.parentElement?.classList.add('dj-info-now-playing-parent');
+        nowPlayingWidget.parentElement?.parentElement?.classList.add('dj-info-now-playing-parent');
 
         setNowPlayingElement(nowPlayingWidgetdjInfoData);
         updateNowPlayingWidget();
