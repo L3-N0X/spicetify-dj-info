@@ -87,6 +87,7 @@ To toggle the visibility of DJ information, follow these steps:
 ### V 2.4.3
 
 - Fixed key and BPM on Spotify 1.3.3+ by reading extended-metadata trait AUDIO_ATTRIBUTES_V2. Danceability, energy, and the other analysis fields are no longer returned by Spotify
+- Show that info beside the current song in the bottom-left player on Spotify 1.3.5, which no longer uses the old now-playing class names
 
 ### V 2.4.2
 

@@ -12,6 +12,28 @@ export function getNowPlayingElement() {
   return nowPlayingWidgetdjInfoData;
 }
 
+export function findNowPlayingWidget() {
+  const nodes = [
+    ...document.querySelectorAll('[data-testid="now-playing-widget-v2"]'),
+    ...document.querySelectorAll('[data-testid="now-playing-widget"]'),
+    ...document.querySelectorAll('.main-nowPlayingWidget-nowPlaying'),
+  ];
+  return nodes.find((node) => node.getClientRects().length > 0) || nodes[0] || null;
+}
+
+export function findTrackInfo(widget) {
+  if (!widget) return null;
+  const legacy = widget.querySelector('.main-trackInfo-container');
+  if (legacy) return legacy;
+
+  const cover = widget.querySelector(
+    '[data-testid="cover-art-container"], [data-testid="cover-art-button"], [data-testid="CoverSlotCollapsed__container"]',
+  );
+  let node = cover;
+  while (node && node.parentElement && node.parentElement !== widget) node = node.parentElement;
+  return node?.nextElementSibling || widget.children[1] || null;
+}
+
 export async function updateNowPlayingWidget() {
   if (!nowPlayingWidgetdjInfoData || !CONFIG.isNowPlayingEnabled) return;
 
