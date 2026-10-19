@@ -1,11 +1,15 @@
 import {
+  audioAttributesResponseDescriptor,
   extendedMetadataJsonDescriptor,
   trackMetadataJsonDescriptor,
 } from '../constants/protobuf.mjs';
 import { trackDb, idb, DjTrackInfo } from '../db/trackDb.mjs';
 
+const AUDIO_ATTRIBUTES_V2 = 222;
+
 let extendedMetadataRequest = null;
 let trackMetadataResponse = null;
+let audioAttributesResponse = null;
 
 function getProtobufTypes() {
   if (!extendedMetadataRequest) {
@@ -15,10 +19,14 @@ function getProtobufTypes() {
     trackMetadataResponse = globalThis.protobuf.Root.fromJSON(trackMetadataJsonDescriptor).lookup(
       'Message',
     );
+    audioAttributesResponse = globalThis.protobuf.Root.fromJSON(
+      audioAttributesResponseDescriptor,
+    ).lookup('Message');
   }
   return {
     extendedMetadataRequest,
     trackMetadataResponse,
+    audioAttributesResponse,
   };
 }
 
@@ -72,82 +80,80 @@ const chunkArray = (array, size) => {
   return chunks;
 };
 
-function normalizeFeatures(features, id) {
-  if (!features || features.error) return null;
-  const record = features.audio_features?.[0] ?? features;
-  if (!record || record.error || record.tempo == null) return null;
+const PITCH_CLASS = {
+  C: 0,
+  'C#': 1,
+  Db: 1,
+  D: 2,
+  'D#': 3,
+  Eb: 3,
+  E: 4,
+  F: 5,
+  'F#': 6,
+  Gb: 6,
+  G: 7,
+  'G#': 8,
+  Ab: 8,
+  A: 9,
+  'A#': 10,
+  Bb: 10,
+  B: 11,
+};
 
-  return {
-    id: record.id ?? id,
-    tempo: record.tempo,
-    key: record.key,
-    mode: record.mode,
-    danceability: record.danceability,
-    energy: record.energy,
-    acousticness: record.acousticness,
-    instrumentalness: record.instrumentalness,
-    liveness: record.liveness,
-    loudness: record.loudness,
-    speechiness: record.speechiness,
-    valence: record.valence,
-    time_signature: record.time_signature,
-  };
+function pitchClassFromName(name) {
+  if (typeof name !== 'string') return null;
+  const match = name
+    .trim()
+    .replace('♯', '#')
+    .replace('♭', 'b')
+    .match(/^([A-G][#b]?)/);
+  if (!match || PITCH_CLASS[match[1]] == null) return null;
+  return PITCH_CLASS[match[1]];
 }
 
-function authHeaders() {
-  return {
-    Authorization: `Bearer ${Spicetify.Platform.AuthorizationAPI.getState().token.accessToken}`,
-    'Spotify-App-Version': Spicetify.Platform.version,
-    'App-Platform': Spicetify.Platform.PlatformData.app_platform,
-    Accept: 'application/json',
-  };
+// Inverse of getKeyInNotation's Camelot formula. 7 is its own inverse mod 12.
+function keyModeFromCamelot(value) {
+  const match = String(value || '').match(/^(\d+)([AB])$/i);
+  if (!match) return null;
+  const number = Number(match[1]);
+  const mode = match[2].toUpperCase() === 'A' ? 0 : 1;
+  if (number < 1 || number > 12) return null;
+  const offset = mode === 0 ? 4 : 7;
+  const key = (7 * ((number - 1 - offset + 12) % 12)) % 12;
+  return { key, mode };
 }
 
-// Spotify 1.3 fails to load remote-config-resolver, so CosmosAsync has no
-// resolver for these URLs and rejects them before the request is sent.
-async function authorizedGet(url) {
-  const resp = await fetch(url, { headers: authHeaders() });
-  if (!resp.ok) {
-    throw new Error(`GET ${url} failed with ${resp.status}`);
-  }
-  return resp.json();
-}
-
-async function getFeaturesForChunk(chunk) {
-  try {
-    const response = await authorizedGet(
-      `https://spclient.wg.spotify.com/audio-attributes/v1/audio-features?ids=${chunk.join(',')}`,
-    );
-    if (Array.isArray(response?.audio_features)) {
-      return response.audio_features.map((features, index) =>
-        normalizeFeatures(features, chunk[index]),
-      );
-    }
-  } catch (error) {
-    console.error('DJ Info: batch audio features request failed:', error);
-  }
-
-  return Promise.all(
-    chunk.map(async (id) => {
-      try {
-        const response = await authorizedGet(
-          `https://spclient.wg.spotify.com/audio-attributes/v1/audio-features/${id}?format=json`,
-        );
-        return normalizeFeatures(response, id);
-      } catch (error) {
-        console.error('DJ Info: Error fetching audio features:', error);
-        return null;
-      }
-    }),
-  );
+function attributesToFeatures(attributes, id) {
+  if (!attributes || !Number.isFinite(attributes.bpm)) return null;
+  const fromCamelot = keyModeFromCamelot(attributes.key?.camelot?.value);
+  const key = pitchClassFromName(attributes.key?.key) ?? fromCamelot?.key;
+  const mode =
+    attributes.key?.mode === 0 || attributes.key?.mode === 1
+      ? attributes.key.mode
+      : fromCamelot?.mode;
+  if (key == null || mode == null) return null;
+  return { id, tempo: attributes.bpm, key, mode };
 }
 
 export async function getFeatures(ids) {
+  const { audioAttributesResponse } = getProtobufTypes();
   const chunks = chunkArray(ids, 100);
   const allFeatures = [];
 
   for (const chunk of chunks) {
-    allFeatures.push(...(await getFeaturesForChunk(chunk)));
+    try {
+      const buf = await getExtendedMetadata(
+        chunk.map((id) => `spotify:track:${id}`),
+        AUDIO_ATTRIBUTES_V2,
+      );
+      const msg = audioAttributesResponse.decode(buf);
+      for (const resp of msg.response) {
+        const id = resp.track?.split(':')[2];
+        allFeatures.push(attributesToFeatures(resp.metadata?.metadata, id));
+      }
+    } catch (error) {
+      console.error('DJ Info: Error fetching audio features:', error);
+    }
   }
 
   return allFeatures;
@@ -192,12 +198,7 @@ export async function getTrackInfo(id) {
 }
 
 function isInfoComplete(info) {
-  return (
-    info &&
-    info.acousticness !== undefined &&
-    info.acousticness !== null &&
-    !isNaN(info.acousticness)
-  );
+  return Boolean(info) && Number.isFinite(info.tempo);
 }
 
 export async function getTrackInfoBatch(ids) {

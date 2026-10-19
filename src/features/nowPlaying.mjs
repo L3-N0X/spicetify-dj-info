@@ -12,6 +12,28 @@ export function getNowPlayingElement() {
   return nowPlayingWidgetdjInfoData;
 }
 
+export function findNowPlayingWidget() {
+  const nodes = [
+    ...document.querySelectorAll('[data-testid="now-playing-widget-v2"]'),
+    ...document.querySelectorAll('[data-testid="now-playing-widget"]'),
+    ...document.querySelectorAll('.main-nowPlayingWidget-nowPlaying'),
+  ];
+  return nodes.find((node) => node.getClientRects().length > 0) || nodes[0] || null;
+}
+
+export function findTrackInfo(widget) {
+  if (!widget) return null;
+  const legacy = widget.querySelector('.main-trackInfo-container');
+  if (legacy) return legacy;
+
+  const cover = widget.querySelector(
+    '[data-testid="cover-art-container"], [data-testid="cover-art-button"], [data-testid="CoverSlotCollapsed__container"]',
+  );
+  let node = cover;
+  while (node && node.parentElement && node.parentElement !== widget) node = node.parentElement;
+  return node?.nextElementSibling || widget.children[1] || null;
+}
+
 export async function updateNowPlayingWidget() {
   if (!nowPlayingWidgetdjInfoData || !CONFIG.isNowPlayingEnabled) return;
 
@@ -43,17 +65,26 @@ export async function updateNowPlayingWidget() {
     if (CONFIG.isKeyEnabled || CONFIG.isCamelotEnabled)
       display_text.push(`${getKeyInNotation(info.key, info.mode)}`);
     if (CONFIG.isBPMEnabled) display_text.push(`${Math.round(info.tempo)} ♫`);
-    if (CONFIG.isEnergyEnabled) display_text.push(`E ${info.energy}`);
-    if (CONFIG.isDanceEnabled) display_text.push(`D ${info.danceability}`);
-    if (CONFIG.isAcousticnessEnabled) display_text.push(`A ${info.acousticness}`);
-    if (CONFIG.isInstrumentalnessEnabled) display_text.push(`I ${info.instrumentalness}`);
-    if (CONFIG.isLivenessEnabled) display_text.push(`L ${info.liveness}`);
-    if (CONFIG.isLoudnessEnabled) display_text.push(`dB ${Math.round(info.loudness * 10) / 10}`);
-    if (CONFIG.isSpeechinessEnabled) display_text.push(`S ${info.speechiness}`);
-    if (CONFIG.isValenceEnabled) display_text.push(`V ${info.valence}`);
-    if (CONFIG.isTimeSignatureEnabled) display_text.push(`${info.time_signature}/4`);
-    if (CONFIG.isPopularityEnabled) display_text.push(`♥ ${info.popularity}`);
-    if (CONFIG.isYearEnabled) display_text.push(`${info.release_date}`);
+    if (CONFIG.isEnergyEnabled && Number.isFinite(info.energy)) display_text.push(`E ${info.energy}`);
+    if (CONFIG.isDanceEnabled && Number.isFinite(info.danceability))
+      display_text.push(`D ${info.danceability}`);
+    if (CONFIG.isAcousticnessEnabled && Number.isFinite(info.acousticness))
+      display_text.push(`A ${info.acousticness}`);
+    if (CONFIG.isInstrumentalnessEnabled && Number.isFinite(info.instrumentalness))
+      display_text.push(`I ${info.instrumentalness}`);
+    if (CONFIG.isLivenessEnabled && Number.isFinite(info.liveness))
+      display_text.push(`L ${info.liveness}`);
+    if (CONFIG.isLoudnessEnabled && Number.isFinite(info.loudness))
+      display_text.push(`dB ${Math.round(info.loudness * 10) / 10}`);
+    if (CONFIG.isSpeechinessEnabled && Number.isFinite(info.speechiness))
+      display_text.push(`S ${info.speechiness}`);
+    if (CONFIG.isValenceEnabled && Number.isFinite(info.valence))
+      display_text.push(`V ${info.valence}`);
+    if (CONFIG.isTimeSignatureEnabled && Number.isFinite(info.time_signature))
+      display_text.push(`${info.time_signature}/4`);
+    if (CONFIG.isPopularityEnabled && Number.isFinite(info.popularity))
+      display_text.push(`♥ ${info.popularity}`);
+    if (CONFIG.isYearEnabled && info.release_date) display_text.push(`${info.release_date}`);
 
     nowPlayingWidgetdjInfoData.innerHTML = display_text.join('<br>');
     nowPlayingWidgetdjInfoData.classList.remove('djinfo-animate');

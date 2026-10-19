@@ -94,3 +94,58 @@ export const trackMetadataJsonDescriptor = {
     },
   },
 };
+
+// Spotify 1.3.3+ serves BPM and key as extended-metadata trait 222.
+export const audioAttributesResponseDescriptor = {
+  nested: {
+    Message: {
+      fields: {
+        header: { type: 'Header', id: 1 },
+        extension_kind: { type: 'uint32', id: 2 },
+        response: { type: 'Response', id: 3, rule: 'repeated' },
+      },
+    },
+    Header: {
+      fields: {
+        status: { type: 'uint32', id: 1 },
+      },
+    },
+    Response: {
+      fields: {
+        info: { type: 'ResponseInfo', id: 1 },
+        track: { type: 'string', id: 2 },
+        metadata: { type: 'AudioAttributesWrapper', id: 3, rule: 'optional' },
+      },
+    },
+    ResponseInfo: {
+      fields: {
+        status: { type: 'uint32', id: 1 },
+      },
+    },
+    AudioAttributesWrapper: {
+      fields: {
+        typestr: { type: 'string', id: 1 },
+        metadata: { type: 'AudioAttributes', id: 2 },
+      },
+    },
+    AudioAttributes: {
+      fields: {
+        bpm: { type: 'double', id: 1 },
+        key: { type: 'AudioKey', id: 2 },
+      },
+    },
+    AudioKey: {
+      fields: {
+        key: { type: 'string', id: 1 },
+        mode: { type: 'int32', id: 2 },
+        camelot: { type: 'CamelotKey', id: 3 },
+      },
+    },
+    CamelotKey: {
+      fields: {
+        value: { type: 'string', id: 1 },
+        color: { type: 'string', id: 2 },
+      },
+    },
+  },
+};
