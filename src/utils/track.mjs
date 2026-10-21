@@ -18,7 +18,18 @@ export function getTracklistTrackUri(tracklistElement) {
       return specificUri;
   }
 
-  // 2. Recursive fallback (For recommendations and new structures)
+  // 2. Newer Spotify versions no longer pass the uri down to the row itself,
+  // so look at the props of the closest parent components
+  const fiberKey = Object.keys(tracklistElement).find((key) => key.startsWith('__reactFiber'));
+  let fiber = fiberKey ? tracklistElement[fiberKey]?.return : null;
+  for (let depth = 0; fiber && depth < 6; depth++, fiber = fiber.return) {
+    const parentProps = fiber.memoizedProps;
+    const parentUri =
+      parentProps?.uri || parentProps?.item?.uri || parentProps?.children?.props?.uri;
+    if (typeof parentUri === 'string' && parentUri.includes('spotify:track:')) return parentUri;
+  }
+
+  // 3. Recursive fallback (For recommendations and new structures)
   const findUri = (obj, depth = 0) => {
     if (!obj || depth > 15) return null;
 

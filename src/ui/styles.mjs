@@ -29,6 +29,7 @@ export function initStyles() {
     .dj-info-now-playing {
       margin-inline: 4px;
       min-width: 34px;
+      flex-shrink: 0;
       font-size: 11px;
       text-align: center;
       overflow-y: auto;
