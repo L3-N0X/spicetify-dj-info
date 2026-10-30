@@ -15,6 +15,7 @@ import {
   updateTracklist,
   updateRecommendations,
   setQueueTrackInfo,
+  findTracklistRoots,
 } from './features/tracklist.mjs';
 import {
   updateNowPlayingWidget,
@@ -71,13 +72,13 @@ import {
   let nowPlayingWidget = null;
 
   function observeTracklist(tracklist, isRecommendation = false) {
-    const updater = () => {
+    const updater = debounce(() => {
       if (isRecommendation) {
         updateRecommendations(tracklist, trackIntersectionObserver);
       } else {
         updateTracklist(tracklist, trackIntersectionObserver);
       }
-    };
+    }, 50);
 
     if (observedTracklists.has(tracklist)) {
       updater();
@@ -91,7 +92,7 @@ import {
   }
 
   function main() {
-    const tracklists = document.querySelectorAll('.main-trackList-indexable');
+    const tracklists = findTracklistRoots();
     tracklists.forEach((tracklist) => observeTracklist(tracklist, false));
 
     const recommendationsContainer = document.querySelector('[data-testid="recommended-track"]');
@@ -129,6 +130,13 @@ import {
   }
 
   const debouncedMain = debounce(main, 10);
+
+  // DJ Info is hidden in narrow windows, so re-evaluate when the window is resized
+  if (window.djInfoResizeHandler) {
+    window.removeEventListener('resize', window.djInfoResizeHandler);
+  }
+  window.djInfoResizeHandler = debounce(main, 150);
+  window.addEventListener('resize', window.djInfoResizeHandler);
 
   if (window.djInfoMutationObserver) {
     window.djInfoMutationObserver.disconnect();
