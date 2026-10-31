@@ -56,6 +56,26 @@ function placeCell(cell, ip, isHeader) {
   }
 }
 
+// Header label that copies Spotify's own column-header label (class + attributes) so our header
+// matches the native ones. Falls back to a plain 12px grey label if none is found.
+function makeHeaderLabel(header, text, extraClass) {
+  const label = document.createElement('span');
+  label.textContent = text;
+  const native = header.querySelector("[role='columnheader'] span");
+  if (native) {
+    label.className = native.className;
+    for (const attr of Array.from(native.attributes)) {
+      if (attr.name !== 'class' && attr.name !== 'style') label.setAttribute(attr.name, attr.value);
+    }
+  } else {
+    label.className = 'encore-text encore-text-body-small';
+    label.style.cssText =
+      'color: var(--spice-subtext, #b3b3b3); font-size: 12px; font-weight: 400;';
+  }
+  if (extraClass) label.classList.add(extraClass);
+  return label;
+}
+
 function ensureHeaderCell(header) {
   const ip = getRowInsertionPoint(header, true);
   if (!ip) return;
@@ -65,18 +85,7 @@ function ensureHeaderCell(header) {
   if (!headerCol) {
     headerCol = document.createElement('div');
     headerCol.className = 'djInfoHeaderCol';
-    const label = document.createElement('span');
-    label.className = 'djinfoheader';
-    label.textContent = 'DJ Info';
-    // Reuse Spotify's own header label styling when available
-    const existing = header.querySelector("[role='columnheader'] span");
-    if (existing) {
-      label.className = `${existing.className} djinfoheader`;
-    } else {
-      label.style.cssText =
-        'color: var(--spice-subtext, #b3b3b3); font-size: 12px; font-weight: 400;';
-    }
-    headerCol.appendChild(label);
+    headerCol.appendChild(makeHeaderLabel(header, 'DJ Info', 'djinfoheader'));
   }
   placeCell(headerCol, ip, true);
 }
