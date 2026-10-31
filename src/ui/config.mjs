@@ -19,13 +19,23 @@ const DEFAULT_CONFIG = {
   isYearEnabled: true,
   isRichUiEnabled: true,
   isSeparateColumnEnabled: true,
+  djInfoColumnWidth: 118,
 };
+
+export const DJ_INFO_COLUMN_WIDTH_MIN = 80;
+export const DJ_INFO_COLUMN_WIDTH_MAX = 400;
 
 export let CONFIG;
 
 export function loadConfig() {
   try {
     CONFIG = JSON.parse(Spicetify.LocalStorage.get('dj-info-config') || 'error');
+
+    // Keep the DJ Info column width in range even if the stored value was edited by hand
+    CONFIG.djInfoColumnWidth = Math.min(
+      DJ_INFO_COLUMN_WIDTH_MAX,
+      Math.max(DJ_INFO_COLUMN_WIDTH_MIN, Number(CONFIG.djInfoColumnWidth) || 118),
+    );
 
     // Ensure all new keys exist
     Object.keys(DEFAULT_CONFIG).forEach((key) => {

@@ -46,6 +46,55 @@ export const ConfigItem = ({ name, field, disabled = false }) => {
   );
 };
 
+export const NumberItem = ({ name, field, min, max, onCommit, disabled = false }) => {
+  const react = getReact();
+  const [value, setValue] = react.useState(String(CONFIG[field]));
+  const commit = () => {
+    const n = Math.min(max, Math.max(min, Math.round(Number(value))));
+    if (!Number.isFinite(n)) {
+      setValue(String(CONFIG[field]));
+      return;
+    }
+    setValue(String(n));
+    if (onCommit) onCommit(n);
+    else {
+      CONFIG[field] = n;
+      saveConfig();
+    }
+  };
+  return react.createElement(
+    'div',
+    { className: 'setting-row' },
+    react.createElement('label', { className: 'col description' }, name),
+    react.createElement(
+      'div',
+      { className: 'col action' },
+      react.createElement('input', {
+        type: 'number',
+        min,
+        max,
+        step: 1,
+        value,
+        disabled,
+        // Spotify's global input styles add a 48px left padding (meant for a search icon),
+        // so set the padding explicitly to keep the number visible.
+        style: {
+          width: '80px',
+          boxSizing: 'border-box',
+          padding: '6px 10px',
+          paddingLeft: '10px',
+          textAlign: 'right',
+        },
+        onChange: (e) => setValue(e.target.value),
+        onBlur: commit,
+        onKeyDown: (e) => {
+          if (e.key === 'Enter') commit();
+        },
+      }),
+    ),
+  );
+};
+
 export const ReloadItem = ({ name, disabled = false }) => {
   const react = getReact();
   return react.createElement(

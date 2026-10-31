@@ -1,4 +1,9 @@
-import { CONFIG } from '../ui/config.mjs';
+import {
+  CONFIG,
+  saveConfig,
+  DJ_INFO_COLUMN_WIDTH_MIN,
+  DJ_INFO_COLUMN_WIDTH_MAX,
+} from '../ui/config.mjs';
 import { trackDb } from '../db/trackDb.mjs';
 import { getRowTrackUri, getKeyInNotation } from '../utils/track.mjs';
 import { GridCoordinator } from '../utils/gridCoordinator.mjs';
@@ -41,6 +46,26 @@ function removeDjInfoCells(root = document) {
   });
 }
 
+/** Width of the DJ Info column in separate-column mode, clamped to the allowed range. */
+export function clampDjInfoColumnWidth(px) {
+  const n = Math.round(Number(px));
+  if (!Number.isFinite(n)) return null;
+  return Math.min(DJ_INFO_COLUMN_WIDTH_MAX, Math.max(DJ_INFO_COLUMN_WIDTH_MIN, n));
+}
+
+/** Saves a new DJ Info column width and applies it to every rendered DJ Info cell at once. */
+export function setDjInfoColumnWidth(px) {
+  const width = clampDjInfoColumnWidth(px);
+  if (width === null) return null;
+  CONFIG.djInfoColumnWidth = width;
+  saveConfig();
+  document.querySelectorAll('.djInfoSeparateCol').forEach((cell) => {
+    cell.style.width = cell.style.minWidth = `${width}px`;
+  });
+  GridCoordinator.scheduleFit(true);
+  return width;
+}
+
 function placeCell(cell, ip, isHeader) {
   const grid = ip.parentElement;
   if (CONFIG.isSeparateColumnEnabled) {
@@ -48,6 +73,7 @@ function placeCell(cell, ip, isHeader) {
     cell.classList.add('djInfoSeparateCol');
     cell.setAttribute('role', isHeader ? 'columnheader' : 'gridcell');
     cell.style.cssText = '';
+    cell.style.width = cell.style.minWidth = `${CONFIG.djInfoColumnWidth}px`;
     if (cell.parentElement !== grid || cell.nextElementSibling !== anchor) {
       grid.insertBefore(cell, anchor);
     }
