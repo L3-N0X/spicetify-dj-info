@@ -1,138 +1,116 @@
 import { CONFIG } from '../ui/config.mjs';
 import { trackDb } from '../db/trackDb.mjs';
-import { getTracklistTrackUri, getKeyInNotation } from '../utils/track.mjs';
-import {
-  fourColumnGridCss,
-  fiveColumnGridCss,
-  sixColumnGridCss,
-  sevenColumnGridCss,
-  richFourColumnGridCss,
-  richFiveColumnGridCss,
-  richSixColumnGridCss,
-  richSevenColumnGridCss,
-  recommendationGridCss,
-  richEightColumnGridCss,
-  eightColumnGridCss,
-} from '../constants/grid.mjs';
+import { getRowTrackUri, getKeyInNotation } from '../utils/track.mjs';
+import { GridCoordinator } from '../utils/gridCoordinator.mjs';
+
+const { isInsideSearchBarDropdown, getAllHeaderRows, getAllTrackRows, getRowInsertionPoint } =
+  GridCoordinator;
+
+const MIN_WIDTH = 550;
+const DOCKED_STYLE =
+  'display: inline-flex; align-items: center; justify-content: center; min-width: 110px; margin-right: 14px; flex-shrink: 0; z-index: 10;';
+const DOCKED_HEADER_STYLE =
+  'display: inline-flex; align-items: center; justify-content: center; min-width: 110px; margin-right: 14px; flex-shrink: 0;';
 
 let queueTrackInfoFn = null;
+
+// Tracks whose popularity/year we already tried to complete this session (prevents refetch loops)
+const refetchTried = new Set();
 
 export function setQueueTrackInfo(fn) {
   queueTrackInfoFn = fn;
 }
 
-const getVisibleColumnCount = (row) => {
-  let count = 0;
-  const children = Array.from(row.children);
-  for (const child of children) {
-    if (child.classList.contains('djInfoList') || child.classList.contains('djinfoheader'))
-      continue;
+const isTooNarrow = () => window.innerWidth < MIN_WIDTH;
 
-    if (
-      child.classList.contains('main-trackList-rowSectionVariable') ||
-      child.classList.contains('main-trackList-rowSectionEnd') ||
-      child.classList.contains('main-trackList-rowSectionStart') ||
-      child.classList.contains('main-trackList-rowSectionIndex')
-    ) {
-      const style = window.getComputedStyle(child);
-      if (style.display !== 'none') {
-        count++;
-      }
-    }
-  }
-  return count;
-};
+// Re-render when the row shows another track (Spotify reuses row nodes while virtual-scrolling),
+// when the data for the track changed, or when any setting changed.
+const renderSig = (id, info) =>
+  `${id}|${info.popularity}|${info.release_date}|${JSON.stringify(CONFIG)}`;
 
-const getDjInfoInsertionAnchor = (row) => {
-  const children = Array.from(row.children);
-  const lastNativeVariableColumn = children.reverse().find((child) => {
-    return (
-      child.classList.contains('main-trackList-rowSectionVariable') &&
-      Array.from(child.classList).every((className) => className.startsWith('main-'))
-    );
+// Order of extension columns, left to right: [DJ Info] [Star Ratings] [DJ Prep] [native last cell].
+// DJ Info always goes before the first Star Ratings / DJ Prep separate column so the DOM order stays
+// stable no matter which extension renders last.
+const getSeparateAnchor = (grid) =>
+  grid.querySelector('.starRatingsSeparateCol, .djPrepSeparateCol');
+
+/** Returns every DJ Info cell/header currently in the DOM except those in recommendations. */
+function removeDjInfoCells(root = document) {
+  root.querySelectorAll('.djInfoHeaderCol, .djInfoList').forEach((el) => {
+    if (!el.closest('[data-testid="recommended-track"]')) el.remove();
   });
+}
 
-  return (
-    (lastNativeVariableColumn && lastNativeVariableColumn.nextElementSibling) ||
-    row.querySelector('.main-trackList-rowSectionEnd')
-  );
-};
-
-const updateTrackGrid = (track, isRecommendation) => {
-  const MIN_WIDTH = 550;
-  const width = window.innerWidth;
-
-  let djInfoColumn =
-    track.querySelector('.djInfoList') || track.querySelector('.djinfoheader')?.parentElement;
-
-  if (width < MIN_WIDTH && !isRecommendation) {
-    if (djInfoColumn) {
-      djInfoColumn.style.display = 'none';
+function placeCell(cell, ip, isHeader) {
+  const grid = ip.parentElement;
+  if (CONFIG.isSeparateColumnEnabled) {
+    const anchor = getSeparateAnchor(grid) || ip;
+    cell.classList.add('djInfoSeparateCol');
+    cell.setAttribute('role', isHeader ? 'columnheader' : 'gridcell');
+    cell.style.cssText = '';
+    if (cell.parentElement !== grid || cell.nextElementSibling !== anchor) {
+      grid.insertBefore(cell, anchor);
     }
-    track.style['grid-template-columns'] = '';
-    return;
-  }
-
-  if (djInfoColumn) {
-    djInfoColumn.style.display = 'flex';
-  }
-
-  const visibleCount = getVisibleColumnCount(track);
-
-  if (isRecommendation) {
-    if (djInfoColumn) {
-      djInfoColumn.style.justifyContent = 'center';
-      djInfoColumn.style.width = '100%';
-    }
-    track.style['grid-template-columns'] = recommendationGridCss;
   } else {
-    if (CONFIG.isRichUiEnabled) {
-      switch (visibleCount) {
-        case 3:
-          track.style['grid-template-columns'] = richFourColumnGridCss;
-          break;
-        case 4:
-          track.style['grid-template-columns'] = richFiveColumnGridCss;
-          break;
-        case 5:
-          track.style['grid-template-columns'] = richSixColumnGridCss;
-          break;
-        case 6:
-          track.style['grid-template-columns'] = richSevenColumnGridCss;
-          break;
-        case 7:
-          track.style['grid-template-columns'] = richEightColumnGridCss;
-          break;
-        default:
-          break;
-      }
-    } else {
-      switch (visibleCount) {
-        case 3:
-          track.style['grid-template-columns'] = fourColumnGridCss;
-          break;
-        case 4:
-          track.style['grid-template-columns'] = fiveColumnGridCss;
-          break;
-        case 5:
-          track.style['grid-template-columns'] = sixColumnGridCss;
-          break;
-        case 6:
-          track.style['grid-template-columns'] = sevenColumnGridCss;
-          break;
-        case 7:
-          track.style['grid-template-columns'] = eightColumnGridCss;
-          break;
-        default:
-          break;
-      }
-    }
+    cell.classList.remove('djInfoSeparateCol');
+    cell.removeAttribute('role');
+    cell.style.cssText = isHeader ? DOCKED_HEADER_STYLE : DOCKED_STYLE;
+    if (ip.firstElementChild !== cell) ip.insertBefore(cell, ip.firstChild);
   }
-};
+}
+
+// Header label that copies Spotify's own column-header label (class + attributes) so our header
+// matches the native ones. Falls back to a plain 12px grey label if none is found.
+function makeHeaderLabel(header, text, extraClass) {
+  const label = document.createElement('span');
+  label.textContent = text;
+  const native = header.querySelector("[role='columnheader'] span");
+  if (native) {
+    label.className = native.className;
+    for (const attr of Array.from(native.attributes)) {
+      if (attr.name !== 'class' && attr.name !== 'style') label.setAttribute(attr.name, attr.value);
+    }
+  } else {
+    label.className = 'encore-text encore-text-body-small';
+    label.style.cssText =
+      'color: var(--spice-subtext, #b3b3b3); font-size: 12px; font-weight: 400;';
+  }
+  if (extraClass) label.classList.add(extraClass);
+  return label;
+}
+
+function ensureHeaderCell(header) {
+  const ip = getRowInsertionPoint(header, true);
+  if (!ip) return;
+  ip.classList.add('spicetify-ext-lastcol-host');
+
+  let headerCol = header.querySelector('.djInfoHeaderCol');
+  if (!headerCol) {
+    headerCol = document.createElement('div');
+    headerCol.className = 'djInfoHeaderCol';
+    headerCol.appendChild(makeHeaderLabel(header, 'DJ Info', 'djinfoheader'));
+  }
+  placeCell(headerCol, ip, true);
+}
+
+function ensureRowCell(track) {
+  const ip = getRowInsertionPoint(track, false);
+  if (!ip) return null;
+  ip.classList.add('spicetify-ext-lastcol-host');
+
+  let djInfoColumn = track.querySelector('.djInfoList');
+  if (!djInfoColumn) {
+    djInfoColumn = document.createElement('div');
+    djInfoColumn.className = 'djInfoList';
+  }
+  placeCell(djInfoColumn, ip, false);
+  return djInfoColumn;
+}
 
 export function addInfoToTrack(track, isRecommendation = false) {
+  if (isInsideSearchBarDropdown(track)) return;
   const hasdjinfo = track.querySelector('.djinfo') !== null;
-  const trackUri = getTracklistTrackUri(track);
+  const trackUri = getRowTrackUri(track);
 
   if (!trackUri) return;
 
@@ -144,32 +122,26 @@ export function addInfoToTrack(track, isRecommendation = false) {
     isRecommendation = track.closest('[data-testid="recommended-track"]') !== null;
   }
 
-  let djInfoColumn = track.querySelector('.djInfoList');
-  if (!djInfoColumn) {
-    let insertionAnchor = getDjInfoInsertionAnchor(track);
-    if (insertionAnchor) {
-      let colIndexInt = getVisibleColumnCount(track);
-      insertionAnchor.setAttribute('aria-colindex', (colIndexInt + 1).toString());
+  if (!isRecommendation && isTooNarrow()) return;
 
-      djInfoColumn = document.createElement('div');
-      djInfoColumn.setAttribute('aria-colindex', colIndexInt.toString());
-      djInfoColumn.style.display = 'flex';
-      djInfoColumn.classList.add('main-trackList-rowSectionVariable');
-      djInfoColumn.classList.add('djInfoList');
-      track.insertBefore(djInfoColumn, insertionAnchor);
-    }
-  }
-
-  if (djInfoColumn) {
-    updateTrackGrid(track, isRecommendation);
-  }
+  track.dataset.djinfoUri = trackUri;
+  const djInfoColumn = ensureRowCell(track);
 
   const uri = trackUri;
   const id = uri.split(':')[2];
   const info = trackDb[id];
 
   if (info) {
-    if (hasdjinfo) return;
+    if (info.v !== 2 && !refetchTried.has(id)) {
+      refetchTried.add(id);
+      if (queueTrackInfoFn) queueTrackInfoFn(id, track);
+    }
+    const sig = renderSig(id, info);
+    if (hasdjinfo && track.dataset.djinfoVer === sig) {
+      GridCoordinator.scheduleFit();
+      return;
+    }
+    track.dataset.djinfoVer = sig;
 
     // Rich UI Implementation
     if (CONFIG.isRichUiEnabled && djInfoColumn) {
@@ -218,8 +190,10 @@ export function addInfoToTrack(track, isRecommendation = false) {
       if (CONFIG.isSpeechinessEnabled) bottomStats.push(`S ${parsedInfo.speechiness}`);
       if (CONFIG.isValenceEnabled) bottomStats.push(`V ${parsedInfo.valence}`);
       if (CONFIG.isTimeSignatureEnabled) bottomStats.push(`${parsedInfo.time_signature}/4`);
-      if (CONFIG.isPopularityEnabled) bottomStats.push(`♥ ${parsedInfo.popularity}`);
-      if (CONFIG.isYearEnabled) bottomStats.push(`${parsedInfo.release_date}`);
+      if (CONFIG.isPopularityEnabled && parsedInfo.popularity != null)
+        bottomStats.push(`♥ ${parsedInfo.popularity}`);
+      if (CONFIG.isYearEnabled && parsedInfo.release_date)
+        bottomStats.push(`${parsedInfo.release_date}`);
 
       if (bottomStats.length > 0) {
         bottomStats.forEach((stat, i) => {
@@ -297,11 +271,11 @@ export function addInfoToTrack(track, isRecommendation = false) {
         dataPoints.push('Sig ' + parsedInfo.time_signature + '/4');
       }
 
-      if (CONFIG.isPopularityEnabled) {
+      if (CONFIG.isPopularityEnabled && parsedInfo.popularity != null) {
         dataPoints.push('♥ ' + parsedInfo.popularity);
       }
 
-      if (CONFIG.isYearEnabled) {
+      if (CONFIG.isYearEnabled && parsedInfo.release_date) {
         dataPoints.push(parsedInfo.release_date);
       }
 
@@ -328,89 +302,61 @@ export function addInfoToTrack(track, isRecommendation = false) {
       queueTrackInfoFn(id, track);
     }
   }
+
+  GridCoordinator.scheduleFit();
+}
+
+/**
+ * Tracklist roots: the legacy `.main-trackList-indexable` plus role/data-testid fallbacks for
+ * newer Spotify clients. Nested roots and search dropdowns are ignored.
+ */
+export function findTracklistRoots() {
+  const found = Array.from(
+    document.querySelectorAll(
+      'main .main-trackList-indexable, main [data-testid="playlist-tracklist"], main [data-testid="track-list"], main [role="grid"]',
+    ),
+  ).filter((el) => !isInsideSearchBarDropdown(el));
+  return found.filter((el) => !found.some((other) => other !== el && other.contains(el)));
 }
 
 export function updateTracklist(tracklist, trackIntersectionObserver) {
   if (!CONFIG.isPlaylistEnabled) return;
   if (!tracklist) return;
 
-  const tracklistHeader = tracklist.querySelector('.main-trackList-trackListHeaderRow');
-  if (tracklistHeader && !tracklistHeader.querySelector('.djinfoheader')) {
-    let insertionAnchor = getDjInfoInsertionAnchor(tracklistHeader);
-    let visibleCols = getVisibleColumnCount(tracklistHeader);
+  document.querySelectorAll('.djInfoHeaderCol, .djInfoList').forEach((el) => {
+    if (isInsideSearchBarDropdown(el)) el.remove();
+  });
 
-    if (!insertionAnchor) return;
-    insertionAnchor.setAttribute('aria-colindex', (visibleCols + 1).toString());
-
-    let headerColumn = document.createElement('div');
-    headerColumn.style.display = 'flex';
-    headerColumn.classList.add('main-trackList-rowSectionVariable');
-    headerColumn.role = 'columnheader';
-    tracklistHeader.insertBefore(headerColumn, insertionAnchor);
-
-    if (CONFIG.isRichUiEnabled) {
-      switch (visibleCols) {
-        case 3:
-          tracklistHeader.style['grid-template-columns'] = richFourColumnGridCss;
-          break;
-        case 4:
-          tracklistHeader.style['grid-template-columns'] = richFiveColumnGridCss;
-          break;
-        case 5:
-          tracklistHeader.style['grid-template-columns'] = richSixColumnGridCss;
-          break;
-        case 6:
-          tracklistHeader.style['grid-template-columns'] = richSevenColumnGridCss;
-          break;
-        case 7:
-          tracklistHeader.style['grid-template-columns'] = richEightColumnGridCss;
-          break;
-        default:
-          break;
-      }
-    } else {
-      switch (visibleCols) {
-        case 3:
-          tracklistHeader.style['grid-template-columns'] = fourColumnGridCss;
-          break;
-        case 4:
-          tracklistHeader.style['grid-template-columns'] = fiveColumnGridCss;
-          break;
-        case 5:
-          tracklistHeader.style['grid-template-columns'] = sixColumnGridCss;
-          break;
-        case 6:
-          tracklistHeader.style['grid-template-columns'] = sevenColumnGridCss;
-          break;
-        case 7:
-          tracklistHeader.style['grid-template-columns'] = eightColumnGridCss;
-          break;
-        default:
-          break;
-      }
-    }
-
-    const btn = document.createElement('button');
-    btn.classList.add('main-trackList-column');
-    btn.classList.add('main-trackList-sortable');
-    btn.classList.add('djinfoheader');
-
-    const title = document.createElement('span');
-    title.classList.add('TypeElement-mesto-type');
-    title.classList.add('standalone-ellipsis-one-line');
-    title.innerHTML = 'DJ Info';
-    btn.appendChild(title);
-    headerColumn.appendChild(btn);
+  if (isTooNarrow()) {
+    removeDjInfoCells();
+    GridCoordinator.scheduleFit(true);
+    return;
   }
 
-  const tracks = tracklist.getElementsByClassName('main-trackList-trackListRow');
-  for (const track of tracks) {
+  getAllHeaderRows()
+    .filter((header) => tracklist.contains(header))
+    .forEach(ensureHeaderCell);
+
+  for (const track of getAllTrackRows()) {
+    if (!tracklist.contains(track)) continue;
+    const isRecommendation = track.closest('[data-testid="recommended-track"]') !== null;
+    if (isRecommendation && !CONFIG.isRecommendationsEnabled) continue;
+
     const hasdjinfo = track.querySelector('.djinfo') !== null;
-    if (!track.classList.contains('dj-observed') || !hasdjinfo) {
+    // Spotify reuses row nodes while virtual-scrolling: detect a row that now shows another track
+    const currentUri = hasdjinfo ? getRowTrackUri(track) : null;
+    const rowId = track.dataset.djinfoUri ? track.dataset.djinfoUri.split(':')[2] : null;
+    const stale =
+      hasdjinfo &&
+      ((currentUri && currentUri !== track.dataset.djinfoUri) ||
+        (rowId && trackDb[rowId] && track.dataset.djinfoVer !== renderSig(rowId, trackDb[rowId])));
+    if (!track.classList.contains('dj-observed') || !hasdjinfo || stale) {
       track.classList.add('dj-observed');
       trackIntersectionObserver.observe(track);
     }
   }
+
+  GridCoordinator.scheduleFit();
 }
 
 export function updateRecommendations(recommendations, trackIntersectionObserver) {

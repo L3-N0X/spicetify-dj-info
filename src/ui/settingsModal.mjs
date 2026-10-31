@@ -27,6 +27,10 @@ export function openConfig() {
       field: 'isRichUiEnabled',
     }),
     react.createElement(ConfigItem, {
+      name: 'Show DJ Info in its own column',
+      field: 'isSeparateColumnEnabled',
+    }),
+    react.createElement(ConfigItem, {
       name: 'Enable in Playlists',
       field: 'isPlaylistEnabled',
     }),

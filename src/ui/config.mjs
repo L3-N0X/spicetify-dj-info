@@ -18,6 +18,7 @@ const DEFAULT_CONFIG = {
   isTimeSignatureEnabled: false,
   isYearEnabled: true,
   isRichUiEnabled: true,
+  isSeparateColumnEnabled: true,
 };
 
 export let CONFIG;

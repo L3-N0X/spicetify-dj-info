@@ -52,6 +52,21 @@ export function initStyles() {
       margin: 0 2px;
       display: inline-block;
     }
+    .djInfoSeparateCol {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 118px;
+      padding: 0 6px;
+      box-sizing: border-box;
+      justify-self: center;
+      flex-shrink: 0;
+      z-index: 10;
+    }
+    .djInfoSeparateCol .dj-info-grid {
+      padding-left: 0;
+      align-items: center;
+    }
     .dj-info-grid {
       display: flex;
       flex-direction: column;

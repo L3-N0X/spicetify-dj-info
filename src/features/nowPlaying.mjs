@@ -74,8 +74,9 @@ export async function updateNowPlayingWidget() {
     if (CONFIG.isSpeechinessEnabled) display_text.push(`S ${info.speechiness}`);
     if (CONFIG.isValenceEnabled) display_text.push(`V ${info.valence}`);
     if (CONFIG.isTimeSignatureEnabled) display_text.push(`${info.time_signature}/4`);
-    if (CONFIG.isPopularityEnabled) display_text.push(`♥ ${info.popularity}`);
-    if (CONFIG.isYearEnabled) display_text.push(`${info.release_date}`);
+    if (CONFIG.isPopularityEnabled && info.popularity != null)
+      display_text.push(`♥ ${info.popularity}`);
+    if (CONFIG.isYearEnabled && info.release_date) display_text.push(`${info.release_date}`);
 
     nowPlayingWidgetdjInfoData.innerHTML = display_text.join('<br>');
     nowPlayingWidgetdjInfoData.classList.remove('djinfo-animate');
