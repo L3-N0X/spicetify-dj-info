@@ -338,10 +338,13 @@ export const GridCoordinator = (() => {
       for (const def of EXTRA_COL_DEFS) {
         const samples = g.sepSamples[def.key];
         if (samples.length > 0) {
-          let w = def.defaultWidth;
+          // The cells carry their own width (user setting / CSS min-width), so measure them
+          // directly; defaultWidth only applies when a sample cannot be measured.
+          let w = 0;
           samples.forEach((el) => {
             w = Math.max(w, Math.ceil(el.getBoundingClientRect().width));
           });
+          if (w <= 0) w = def.defaultWidth;
           extraCols.push({ key: def.key, width: w });
         }
       }

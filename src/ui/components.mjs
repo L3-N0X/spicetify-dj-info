@@ -46,6 +46,47 @@ export const ConfigItem = ({ name, field, disabled = false }) => {
   );
 };
 
+export const NumberItem = ({ name, field, min, max, onCommit, disabled = false }) => {
+  const react = getReact();
+  const [value, setValue] = react.useState(String(CONFIG[field]));
+  const commit = () => {
+    const n = Math.min(max, Math.max(min, Math.round(Number(value))));
+    if (!Number.isFinite(n)) {
+      setValue(String(CONFIG[field]));
+      return;
+    }
+    setValue(String(n));
+    if (onCommit) onCommit(n);
+    else {
+      CONFIG[field] = n;
+      saveConfig();
+    }
+  };
+  return react.createElement(
+    'div',
+    { className: 'setting-row' },
+    react.createElement('label', { className: 'col description' }, name),
+    react.createElement(
+      'div',
+      { className: 'col action' },
+      react.createElement('input', {
+        type: 'number',
+        min,
+        max,
+        step: 1,
+        value,
+        disabled,
+        style: { width: '80px' },
+        onChange: (e) => setValue(e.target.value),
+        onBlur: commit,
+        onKeyDown: (e) => {
+          if (e.key === 'Enter') commit();
+        },
+      }),
+    ),
+  );
+};
+
 export const ReloadItem = ({ name, disabled = false }) => {
   const react = getReact();
   return react.createElement(
