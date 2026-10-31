@@ -76,7 +76,15 @@ export const NumberItem = ({ name, field, min, max, onCommit, disabled = false }
         step: 1,
         value,
         disabled,
-        style: { width: '80px' },
+        // Spotify's global input styles add a 48px left padding (meant for a search icon),
+        // so set the padding explicitly to keep the number visible.
+        style: {
+          width: '80px',
+          boxSizing: 'border-box',
+          padding: '6px 10px',
+          paddingLeft: '10px',
+          textAlign: 'right',
+        },
         onChange: (e) => setValue(e.target.value),
         onBlur: commit,
         onKeyDown: (e) => {
