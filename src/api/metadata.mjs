@@ -1,25 +1,16 @@
-import {
-  extendedMetadataJsonDescriptor,
-  trackMetadataJsonDescriptor,
-} from '../constants/protobuf.mjs';
+import { extendedMetadataJsonDescriptor } from '../constants/protobuf.mjs';
+import { decodeExtendedMetadataResponse } from './extendedMetadataDecoder.mjs';
 import { trackDb, idb, DjTrackInfo } from '../db/trackDb.mjs';
 
 let extendedMetadataRequest = null;
-let trackMetadataResponse = null;
 
 function getProtobufTypes() {
   if (!extendedMetadataRequest) {
     extendedMetadataRequest = globalThis.protobuf.Root.fromJSON(
       extendedMetadataJsonDescriptor,
     ).lookup('Message');
-    trackMetadataResponse = globalThis.protobuf.Root.fromJSON(trackMetadataJsonDescriptor).lookup(
-      'Message',
-    );
   }
-  return {
-    extendedMetadataRequest,
-    trackMetadataResponse,
-  };
+  return { extendedMetadataRequest };
 }
 
 let country = 'US';
@@ -154,24 +145,12 @@ export async function getFeatures(ids) {
 }
 
 export async function getTrackFeatures(ids) {
-  const { trackMetadataResponse } = getProtobufTypes();
   const buf = await getExtendedMetadata(
     ids.map((id) => `spotify:track:${id}`),
     10,
   );
-  const msg = trackMetadataResponse.decode(buf);
-
-  return msg.response.map((resp) => {
-    if (!resp.metadata) return null;
-    const metadata = resp.metadata.metadata;
-    const date = metadata.album.release_date;
-    const date_iso = `${date?.year}-${(date?.month + '').padStart(2, '0')}-${(date?.day + '').padStart(2, '0')}`;
-    return {
-      id: resp.track.split(':')[2],
-      popularity: metadata.popularity,
-      release_date: date_iso,
-    };
-  });
+  // Entries without metadata are skipped by the decoder, so one bad entry can't drop the batch
+  return decodeExtendedMetadataResponse(buf);
 }
 
 export async function getTrackInfo(id) {
@@ -191,9 +170,12 @@ export async function getTrackInfo(id) {
   return info;
 }
 
+// `v: 2` marks entries that also have popularity/release date; entries cached without it are
+// fetched again (once per session, see addInfoToTrack).
 function isInfoComplete(info) {
   return (
     info &&
+    info.v === 2 &&
     info.acousticness !== undefined &&
     info.acousticness !== null &&
     !isNaN(info.acousticness)
@@ -235,11 +217,14 @@ export async function getTrackInfoBatch(ids) {
         featuresRes.forEach((track) => {
           if (track) {
             const trackDetails = metadataRes?.find((t) => t?.id === track?.id);
-            if (trackDetails) {
-              const info = DjTrackInfo.fromQueries(track, trackDetails);
-              trackDb[track.id] = info;
-              newItems.push({ id: track.id, val: info });
-            }
+            // Still show the audio features when popularity/year could not be loaded
+            const info = DjTrackInfo.fromQueries(
+              track,
+              trackDetails ?? { popularity: undefined, release_date: '' },
+            );
+            if (trackDetails) info.v = 2;
+            trackDb[track.id] = info;
+            newItems.push({ id: track.id, val: info });
           }
         });
 

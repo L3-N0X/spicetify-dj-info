@@ -14,6 +14,9 @@ const DOCKED_HEADER_STYLE =
 
 let queueTrackInfoFn = null;
 
+// Tracks whose popularity/year we already tried to complete this session (prevents refetch loops)
+const refetchTried = new Set();
+
 export function setQueueTrackInfo(fn) {
   queueTrackInfoFn = fn;
 }
@@ -129,6 +132,10 @@ export function addInfoToTrack(track, isRecommendation = false) {
   const info = trackDb[id];
 
   if (info) {
+    if (info.v !== 2 && !refetchTried.has(id)) {
+      refetchTried.add(id);
+      if (queueTrackInfoFn) queueTrackInfoFn(id, track);
+    }
     const sig = renderSig(id, info);
     if (hasdjinfo && track.dataset.djinfoVer === sig) {
       GridCoordinator.scheduleFit();
@@ -183,8 +190,10 @@ export function addInfoToTrack(track, isRecommendation = false) {
       if (CONFIG.isSpeechinessEnabled) bottomStats.push(`S ${parsedInfo.speechiness}`);
       if (CONFIG.isValenceEnabled) bottomStats.push(`V ${parsedInfo.valence}`);
       if (CONFIG.isTimeSignatureEnabled) bottomStats.push(`${parsedInfo.time_signature}/4`);
-      if (CONFIG.isPopularityEnabled) bottomStats.push(`♥ ${parsedInfo.popularity}`);
-      if (CONFIG.isYearEnabled) bottomStats.push(`${parsedInfo.release_date}`);
+      if (CONFIG.isPopularityEnabled && parsedInfo.popularity != null)
+        bottomStats.push(`♥ ${parsedInfo.popularity}`);
+      if (CONFIG.isYearEnabled && parsedInfo.release_date)
+        bottomStats.push(`${parsedInfo.release_date}`);
 
       if (bottomStats.length > 0) {
         bottomStats.forEach((stat, i) => {
@@ -262,11 +271,11 @@ export function addInfoToTrack(track, isRecommendation = false) {
         dataPoints.push('Sig ' + parsedInfo.time_signature + '/4');
       }
 
-      if (CONFIG.isPopularityEnabled) {
+      if (CONFIG.isPopularityEnabled && parsedInfo.popularity != null) {
         dataPoints.push('♥ ' + parsedInfo.popularity);
       }
 
-      if (CONFIG.isYearEnabled) {
+      if (CONFIG.isYearEnabled && parsedInfo.release_date) {
         dataPoints.push(parsedInfo.release_date);
       }
 

@@ -14,7 +14,7 @@ export class DjTrackInfo {
       valence: Math.round(100 * res.valence),
       time_signature: res.time_signature,
       popularity: resTrack.popularity,
-      release_date: resTrack.release_date.split('-')[0],
+      release_date: (resTrack.release_date || '').split('-')[0],
     };
   }
 }
