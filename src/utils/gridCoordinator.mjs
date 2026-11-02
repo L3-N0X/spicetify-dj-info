@@ -1,5 +1,5 @@
 /**
- * Shared tracklist grid coordinator (window.SpicetifyGridCoordinator, version 2).
+ * Shared tracklist grid coordinator (window.SpicetifyGridCoordinator, version 3).
  *
  * Spotify lays out each tracklist row as a CSS grid whose `grid-template-columns` is driven by
  * Spotify's own column-resize CSS variables. Appending a custom cell therefore either overlaps the
@@ -10,11 +10,13 @@
  *
  * It is exposed on `window` so that other Spicetify extensions embedding the same coordinator
  * (Star Ratings, DJ Prep) share one implementation instead of overwriting each other's grid spec.
- * The first coordinator with version >= 2 wins; keep embedded copies in sync.
+ * The newest coordinator wins (an older one is cleaned up); keep embedded copies in sync.
+ * Version 3: an extension cell can declare its own minimum width with data-ext-col-min (px), so
+ * columns can be resized narrower than the built-in default.
  */
 
 export const GridCoordinator = (() => {
-  if (window.SpicetifyGridCoordinator && window.SpicetifyGridCoordinator.version >= 2) {
+  if (window.SpicetifyGridCoordinator && window.SpicetifyGridCoordinator.version >= 3) {
     return window.SpicetifyGridCoordinator;
   }
   if (window.SpicetifyGridCoordinator?.cleanup) {
@@ -338,11 +340,14 @@ export const GridCoordinator = (() => {
       for (const def of EXTRA_COL_DEFS) {
         const samples = g.sepSamples[def.key];
         if (samples.length > 0) {
-          let w = def.defaultWidth;
+          let w = 0;
+          let floor = def.defaultWidth;
           samples.forEach((el) => {
+            const declared = parseInt(el.getAttribute('data-ext-col-min'), 10);
+            if (declared > 0) floor = declared;
             w = Math.max(w, Math.ceil(el.getBoundingClientRect().width));
           });
-          extraCols.push({ key: def.key, width: w });
+          extraCols.push({ key: def.key, width: Math.max(floor, w) });
         }
       }
       g.grids.forEach((grid) => applyGridFit(grid, need, extraCols));
@@ -417,7 +422,7 @@ export const GridCoordinator = (() => {
     });
   }
   const api = {
-    version: 2,
+    version: 3,
     isInsideSearchBarDropdown,
     getRowInsertionPoint,
     getAllHeaderRows,

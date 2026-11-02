@@ -19,6 +19,7 @@ const DEFAULT_CONFIG = {
   isYearEnabled: true,
   isRichUiEnabled: true,
   isSeparateColumnEnabled: true,
+  djInfoMinColWidth: 118,
 };
 
 export let CONFIG;

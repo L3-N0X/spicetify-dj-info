@@ -1,4 +1,5 @@
-import { ConfigItem, ReloadItem, ButtonItem } from './components.mjs';
+import { ConfigItem, ReloadItem, ButtonItem, NumberItem } from './components.mjs';
+import { applyColumnLimits, COL_MIN_LIMIT, COL_MAX_LIMIT } from '../features/tracklist.mjs';
 import { CONFIG_MODAL_CSS } from './styles.mjs';
 import { clearAllCache } from '../db/trackDb.mjs';
 
@@ -29,6 +30,13 @@ export function openConfig() {
     react.createElement(ConfigItem, {
       name: 'Show DJ Info in its own column',
       field: 'isSeparateColumnEnabled',
+    }),
+    react.createElement(NumberItem, {
+      name: 'Minimum DJ Info column width (px)',
+      field: 'djInfoMinColWidth',
+      min: COL_MIN_LIMIT,
+      max: COL_MAX_LIMIT,
+      onChange: applyColumnLimits,
     }),
     react.createElement(ConfigItem, {
       name: 'Enable in Playlists',

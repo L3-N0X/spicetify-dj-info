@@ -53,6 +53,7 @@ export function initStyles() {
       display: inline-block;
     }
     .djInfoSeparateCol {
+      position: relative;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -62,6 +63,15 @@ export function initStyles() {
       justify-self: center;
       flex-shrink: 0;
       z-index: 10;
+    }
+    body.djInfoResizing,
+    body.djInfoResizing * {
+      cursor: col-resize !important;
+      user-select: none !important;
+    }
+    .djInfoResizeHandle:hover,
+    .djInfoResizeHandle:focus-visible {
+      background: rgba(255, 255, 255, 0.2);
     }
     .djInfoSeparateCol .dj-info-grid {
       padding-left: 0;
