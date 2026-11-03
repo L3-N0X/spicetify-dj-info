@@ -111,6 +111,16 @@ function alignHeaderLabel(header) {
   set('padding-left', left ? nativeLabelInset(header) + 'px' : '');
 }
 
+// Aligns the content of a row cell with the header label above it.
+function alignRowCell(cell) {
+  const left = HEADER_LABEL_ALIGN === 'left';
+  cell.classList.toggle('djInfoAlignLeft', left);
+  if (!left) return;
+  const header = document.querySelector('.djInfoHeaderCol');
+  cell.style.setProperty('justify-content', 'flex-start');
+  cell.style.setProperty('padding-left', (header && header.style.paddingLeft) || '0px');
+}
+
 function placeCell(cell, ip, isHeader) {
   const grid = ip.parentElement;
   if (CONFIG.isSeparateColumnEnabled) {
@@ -123,6 +133,7 @@ function placeCell(cell, ip, isHeader) {
       grid.insertBefore(cell, anchor);
     }
     if (isHeader) alignHeaderLabel(cell);
+    else alignRowCell(cell);
   } else {
     cell.classList.remove('djInfoSeparateCol');
     cell.removeAttribute('role');

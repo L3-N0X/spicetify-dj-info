@@ -77,6 +77,9 @@ export function initStyles() {
       padding-left: 0;
       align-items: center;
     }
+    .djInfoSeparateCol.djInfoAlignLeft .dj-info-grid {
+      align-items: flex-start;
+    }
     .dj-info-grid {
       display: flex;
       flex-direction: column;
