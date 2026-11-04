@@ -84,6 +84,15 @@ To toggle the visibility of DJ information, follow these steps:
 
 ## 📜 Changelog
 
+### V 2.5.0
+
+- DJ Info now gets its own column in the tracklist by default, sized to fit next to Spotify's columns and other extensions' columns (Star Ratings, DJ Prep) without overlapping them. Turn off "Show DJ Info in its own column" to keep the old layout inside the last column
+- The DJ Info column can be resized by dragging the separator on its header (double-click resets it), or by setting "DJ Info column width" in the settings
+- Spotify's own column resizing keeps working, and switching Spotify's columns on or off no longer shifts the DJ Info column
+- Fixed the artist page, where the Popular tracklist could overflow into the sections next to it
+- Fixed tracks staying empty when one track in a metadata batch had no data, and popularity/year are now hidden instead of wrong when unknown
+- DJ Info no longer appears inside the search dropdown
+
 ### V 2.4.3
 
 - Fixed DJ info missing from playlist and Liked Songs rows on Spotify 1.3.4, which no longer passes the track uri down to the row
@@ -153,11 +162,15 @@ And also thanks to [Golevka2001](https://github.com/Golevka2001) for the idea fo
 
 Big thanks to [duffey](https://github.com/Tetrax-10) for the main code of displaying something in the playlist and the now playing widget!
 
+Thanks to [rosgr100](https://github.com/rosgr100) for the separate, resizable DJ Info column and the shared grid coordinator that keeps it working together with other extensions!
+
 Also thanks to [je09](https://github.com/je09) for contributing the code for displaying both the standard notation and the Camelot system for the key aswell as the option to display it on the left side in now playing!
 
 ## 💬 Feedback and Contributions
 
 If you encounter any issues or have suggestions for improving this extension, feel free to open an issue in the [GitHub repository](https://github.com/L3-N0X/spicetify-dj-info). Contributions are also welcome! Fork the repository, make your changes, and submit a pull request with your improvements.
+
+The tracklist layout code lives in a git submodule (`src/shared/grid-coordinator`), so clone with `git clone --recurse-submodules`, or run `git submodule update --init` in an existing clone, before building with `npm install && npm run build`.
 
 ## ⚖️ License
 
