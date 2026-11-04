@@ -1,0 +1,3 @@
+[submodule "src/shared/grid-coordinator"]
+	path = src/shared/grid-coordinator
+	url = https://github.com/rosgr100/spicetify-grid-coordinator

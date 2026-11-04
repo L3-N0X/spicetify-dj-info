@@ -53,6 +53,7 @@ export function initStyles() {
       display: inline-block;
     }
     .djInfoSeparateCol {
+      position: relative;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -63,9 +64,26 @@ export function initStyles() {
       flex-shrink: 0;
       z-index: 10;
     }
+    body.djInfoResizing,
+    body.djInfoResizing * {
+      cursor: col-resize !important;
+      user-select: none !important;
+    }
+    /* Fallback line in case Spotify's own separator class does not match: zero-specificity
+       selector, so Spotify's rule wins whenever it applies. */
+    :where([role='row']:hover, [role='row']:focus-within) .djInfoResizeHandle {
+      background: linear-gradient(#ffffff4d, #ffffff4d) 50% / 1px 100% no-repeat;
+    }
+    .djInfoResizeHandle:hover,
+    .djInfoResizeHandle:focus-visible {
+      background: rgba(255, 255, 255, 0.2);
+    }
     .djInfoSeparateCol .dj-info-grid {
       padding-left: 0;
       align-items: center;
+    }
+    .djInfoSeparateCol.djInfoAlignLeft .dj-info-grid {
+      align-items: flex-start;
     }
     .dj-info-grid {
       display: flex;
