@@ -1,5 +1,6 @@
-import { ConfigItem, ReloadItem, ButtonItem, NumberItem } from './components.mjs';
-import { applyColumnLimits, COL_MIN_LIMIT, COL_MAX_LIMIT } from '../features/tracklist.mjs';
+import { ConfigItem, NumberItem, ReloadItem, ButtonItem } from './components.mjs';
+import { setDjInfoColumnWidth } from '../features/tracklist.mjs';
+import { DJ_INFO_COLUMN_WIDTH_MIN, DJ_INFO_COLUMN_WIDTH_MAX } from './config.mjs';
 import { CONFIG_MODAL_CSS } from './styles.mjs';
 import { clearAllCache } from '../db/trackDb.mjs';
 
@@ -32,11 +33,11 @@ export function openConfig() {
       field: 'isSeparateColumnEnabled',
     }),
     react.createElement(NumberItem, {
-      name: 'Minimum DJ Info column width (px)',
-      field: 'djInfoMinColWidth',
-      min: COL_MIN_LIMIT,
-      max: COL_MAX_LIMIT,
-      onChange: applyColumnLimits,
+      name: 'DJ Info column width (px)',
+      field: 'djInfoColumnWidth',
+      min: DJ_INFO_COLUMN_WIDTH_MIN,
+      max: DJ_INFO_COLUMN_WIDTH_MAX,
+      onCommit: (px) => setDjInfoColumnWidth(px),
     }),
     react.createElement(ConfigItem, {
       name: 'Enable in Playlists',

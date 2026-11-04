@@ -1,4 +1,9 @@
-import { CONFIG } from '../ui/config.mjs';
+import {
+  CONFIG,
+  saveConfig,
+  DJ_INFO_COLUMN_WIDTH_MIN,
+  DJ_INFO_COLUMN_WIDTH_MAX,
+} from '../ui/config.mjs';
 import { trackDb } from '../db/trackDb.mjs';
 import { getRowTrackUri, getKeyInNotation } from '../utils/track.mjs';
 import { GridCoordinator } from '../shared/grid-coordinator/grid-coordinator';
@@ -12,12 +17,9 @@ const DOCKED_STYLE =
 const DOCKED_HEADER_STYLE =
   'display: inline-flex; align-items: center; justify-content: center; min-width: 110px; margin-right: 14px; flex-shrink: 0;';
 
-// Width of the DJ Info column in separate-column mode, set by the drag handle on its header.
+// Width of the DJ Info column in separate-column mode. It is stored in CONFIG.djInfoColumnWidth
+// (settings field) and can also be changed with the drag handle on the DJ Info header.
 const COL_DEFAULT = 118;
-const COL_MAX = 320;
-export const COL_MIN_LIMIT = 60; // lowest value the "minimum column width" setting accepts
-export const COL_MAX_LIMIT = 300; // highest value the setting accepts
-const COL_KEY = 'djinfo-col-width';
 // ---- Where to nudge the drag handle (px) ----
 // The handle copies the position, height and width of Spotify's own column separators, so these should
 // normally stay 0. Positive X moves the handle to the right, positive Y moves it down.
@@ -29,28 +31,15 @@ const HANDLE_OFFSET_Y = 0;
 // 'left': the label starts at the left edge of its column, like Spotify's own headers (Date added, BPM...).
 // 'center': the label is centred over the column.
 const HEADER_LABEL_ALIGN = 'left';
-// Smallest width the user allows (settings), never above what the setting itself can hold
-const getColMin = () => {
-  const v = parseInt(CONFIG && CONFIG.djInfoMinColWidth, 10);
-  return Number.isFinite(v) ? Math.min(COL_MAX_LIMIT, Math.max(COL_MIN_LIMIT, v)) : COL_DEFAULT;
-};
-const clampColWidth = (px) => {
-  const min = getColMin();
-  return Math.min(Math.max(COL_MAX, min), Math.max(min, Math.round(px)));
-};
-function loadColWidth() {
-  try {
-    const v = parseFloat(window.localStorage.getItem(COL_KEY));
-    return Number.isFinite(v) ? v : COL_DEFAULT;
-  } catch {
-    return COL_DEFAULT;
-  }
-}
-// CONFIG is loaded after this module is evaluated, so read the stored width lazily
-let colWidth = null;
+const clampColWidth = (px) =>
+  Math.min(DJ_INFO_COLUMN_WIDTH_MAX, Math.max(DJ_INFO_COLUMN_WIDTH_MIN, Math.round(px)));
+// While dragging, the width lives here and is only saved to CONFIG when the drag ends
+// (saving on every pointermove would also re-render every row, see renderSig).
+let liveWidth = null;
 const currentWidth = () => {
-  if (colWidth === null) colWidth = loadColWidth();
-  return clampColWidth(colWidth);
+  if (liveWidth !== null) return liveWidth;
+  const v = Number(CONFIG && CONFIG.djInfoColumnWidth);
+  return clampColWidth(Number.isFinite(v) && v > 0 ? v : COL_DEFAULT);
 };
 
 let queueTrackInfoFn = null;
@@ -186,30 +175,33 @@ function setCellWidth(el, px) {
   if (el.style.width !== w) el.style.width = w;
   if (el.style.minWidth !== w) el.style.minWidth = w;
   // Tells the grid coordinator how narrow this column is allowed to get
-  const min = String(getColMin());
+  const min = String(DJ_INFO_COLUMN_WIDTH_MIN);
   if (el.getAttribute('data-ext-col-min') !== min) el.setAttribute('data-ext-col-min', min);
 }
 
-// Called when the "minimum column width" setting changes: re-clamps and refits right away.
-export function applyColumnLimits() {
-  setColWidth(currentWidth(), true);
-}
-
-// Applies a new DJ Info width to every DJ Info cell and refits the grids.
+// Applies a new DJ Info width to every DJ Info cell and refits the grids. With persist the width
+// is saved to the settings; without it (while dragging) it is only shown.
 function setColWidth(px, persist) {
-  colWidth = clampColWidth(px);
-  document.querySelectorAll('.djInfoSeparateCol').forEach((el) => setCellWidth(el, colWidth));
+  const width = clampColWidth(px);
+  if (persist) {
+    liveWidth = null;
+    if (CONFIG.djInfoColumnWidth !== width) {
+      CONFIG.djInfoColumnWidth = width;
+      saveConfig();
+    }
+  } else liveWidth = width;
+  document.querySelectorAll('.djInfoSeparateCol').forEach((el) => setCellWidth(el, width));
   document.querySelectorAll('.djInfoResizeHandle').forEach((h) => {
-    h.setAttribute('aria-valuemin', String(getColMin()));
-    h.setAttribute('aria-valuemax', String(Math.max(COL_MAX, getColMin())));
-    h.setAttribute('aria-valuenow', String(colWidth));
+    h.setAttribute('aria-valuenow', String(width));
   });
   GridCoordinator.scheduleFit(true);
-  if (persist) {
-    try {
-      window.localStorage.setItem(COL_KEY, String(colWidth));
-    } catch {}
-  }
+  return width;
+}
+
+/** Saves a new DJ Info column width (settings field) and applies it to every rendered cell at once. */
+export function setDjInfoColumnWidth(px) {
+  const n = Number(px);
+  return Number.isFinite(n) ? setColWidth(n, true) : null;
 }
 
 let drag = null;
@@ -287,8 +279,8 @@ function ensureResizeHandle(headerCol) {
   h.setAttribute('role', 'separator');
   h.setAttribute('aria-orientation', 'horizontal');
   h.setAttribute('aria-label', 'Resize DJ Info column');
-  h.setAttribute('aria-valuemin', String(getColMin()));
-  h.setAttribute('aria-valuemax', String(Math.max(COL_MAX, getColMin())));
+  h.setAttribute('aria-valuemin', String(DJ_INFO_COLUMN_WIDTH_MIN));
+  h.setAttribute('aria-valuemax', String(DJ_INFO_COLUMN_WIDTH_MAX));
   h.setAttribute('aria-valuenow', String(currentWidth()));
   h.draggable = false;
   h.tabIndex = 0;

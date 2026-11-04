@@ -46,18 +46,21 @@ export const ConfigItem = ({ name, field, disabled = false }) => {
   );
 };
 
-// Number field that commits on Enter / blur (so typing "90" isn't clamped at "9").
-export const NumberItem = ({ name, field, min, max, onChange }) => {
+export const NumberItem = ({ name, field, min, max, onCommit, disabled = false }) => {
   const react = getReact();
-  const [text, setText] = react.useState(String(CONFIG[field]));
+  const [value, setValue] = react.useState(String(CONFIG[field]));
   const commit = () => {
-    let v = parseInt(text, 10);
-    if (!Number.isFinite(v)) v = CONFIG[field];
-    v = Math.min(max, Math.max(min, v));
-    CONFIG[field] = v;
-    setText(String(v));
-    saveConfig();
-    if (onChange) onChange(v);
+    const n = Math.min(max, Math.max(min, Math.round(Number(value))));
+    if (!Number.isFinite(n)) {
+      setValue(String(CONFIG[field]));
+      return;
+    }
+    setValue(String(n));
+    if (onCommit) onCommit(n);
+    else {
+      CONFIG[field] = n;
+      saveConfig();
+    }
   };
   return react.createElement(
     'div',
@@ -71,16 +74,18 @@ export const NumberItem = ({ name, field, min, max, onChange }) => {
         min,
         max,
         step: 1,
-        value: text,
+        value,
+        disabled,
+        // Spotify's global input styles add a 48px left padding (meant for a search icon),
+        // so set the padding explicitly to keep the number visible.
         style: {
-          width: '76px',
-          padding: '4px 8px',
-          borderRadius: '4px',
-          border: '1px solid var(--spice-button-disabled, #535353)',
-          background: 'transparent',
-          color: 'inherit',
+          width: '80px',
+          boxSizing: 'border-box',
+          padding: '6px 10px',
+          paddingLeft: '10px',
+          textAlign: 'right',
         },
-        onChange: (e) => setText(e.target.value),
+        onChange: (e) => setValue(e.target.value),
         onBlur: commit,
         onKeyDown: (e) => {
           if (e.key === 'Enter') commit();
