@@ -227,15 +227,33 @@ function onResizeEnd(e) {
   if (moved) setColWidth(currentWidth(), true);
 }
 
-// One of Spotify's own column separators in the same header row (we copy its geometry).
+// Spotify's separator class: its readable Spicetify name, plus the hashed name some clients use when
+// Spicetify has no mapping for them (for example 1.3.6). Only a fallback: the class is copied from a
+// native separator whenever one is on screen (see syncHandleClass).
+const FALLBACK_SEPARATOR_CLASS = 'main-trackList-rowSeperator VJ6bK4WKtyILTdvBAkHv';
+
+// One of Spotify's own column separators in the same header row (we copy its class and geometry).
+// Found by role only: the aria-label is translated ("Resize columns", "Spaltengröße ändern", ...).
 function nativeSeparator(header) {
   const row = header.parentElement;
   if (!row) return null;
-  const list = row.querySelectorAll('[role="separator"][aria-label="Resize columns"]');
+  const list = row.querySelectorAll('[role="columnheader"] [role="separator"]');
   for (const s of Array.from(list)) {
+    if (s.classList.contains('djInfoResizeHandle') || s.closest(OUR_HEADER_SELECTOR)) continue;
     if (s.getBoundingClientRect().height > 0) return s;
   }
   return null;
+}
+
+// Gives the handle the class(es) of Spotify's own separator, so it is drawn the same way.
+function syncHandleClass(h, native) {
+  const cls = native
+    ? Array.from(native.classList)
+        .filter((c) => c !== 'djInfoResizeHandle')
+        .join(' ')
+    : '';
+  const next = 'djInfoResizeHandle ' + (cls || FALLBACK_SEPARATOR_CLASS);
+  if (cls ? h.className !== next : h.className === 'djInfoResizeHandle') h.className = next;
 }
 
 function setStyle(el, prop, value) {
@@ -246,6 +264,7 @@ function setStyle(el, prop, value) {
 // Spotify's own separators. Returns false while the header isn't laid out yet (or no native one exists).
 function alignHandle(header, h) {
   const n = nativeSeparator(header);
+  if (n) syncHandleClass(h, n);
   const cell = n && n.parentElement;
   const hr = header.getBoundingClientRect();
   if (!n || !cell || hr.height <= 0) return false;
@@ -266,7 +285,7 @@ function alignHandleSoon(header, h, tries) {
   });
 }
 
-// Drag handle on the right edge of the DJ Info header. It reuses Spotify's separator class so it
+// Drag handle on the right edge of the DJ Info header. It copies Spotify's separator class so it
 // looks like the native one, but it has its own drag logic (Spotify's handler is bound to its columns).
 function ensureResizeHandle(headerCol) {
   const existing = headerCol.querySelector('.djInfoResizeHandle');
@@ -275,7 +294,8 @@ function ensureResizeHandle(headerCol) {
     return;
   }
   const h = document.createElement('div');
-  h.className = 'djInfoResizeHandle VJ6bK4WKtyILTdvBAkHv';
+  h.className = 'djInfoResizeHandle';
+  syncHandleClass(h, nativeSeparator(headerCol));
   h.setAttribute('role', 'separator');
   h.setAttribute('aria-orientation', 'horizontal');
   h.setAttribute('aria-label', 'Resize DJ Info column');
@@ -321,6 +341,23 @@ function ensureResizeHandle(headerCol) {
   });
   headerCol.appendChild(h);
   if (!alignHandle(headerCol, h)) alignHandleSoon(headerCol, h, 8);
+}
+
+// When a native column is switched on, React inserts its cell before the next native cell, which can put
+// it between our cell and the native last cell. The DOM order then no longer matches the grid tracks and
+// DJ Info is drawn one column too far left until the row is re-rendered. Puts the cell back in place
+// (no DOM write when it is already there, so this cannot loop with the MutationObserver).
+function fixSeparateCellPosition(row, isHeader) {
+  if (!CONFIG.isSeparateColumnEnabled) return;
+  const cell = row.querySelector(isHeader ? '.djInfoHeaderCol' : '.djInfoList');
+  if (!cell || !cell.classList.contains('djInfoSeparateCol')) return;
+  const ip = getRowInsertionPoint(row, isHeader);
+  const grid = ip && ip.parentElement;
+  if (!grid) return;
+  const anchor = getSeparateAnchor(grid) || ip;
+  if (anchor !== cell && (cell.parentElement !== grid || cell.nextElementSibling !== anchor)) {
+    grid.insertBefore(cell, anchor);
+  }
 }
 
 function ensureRowCell(track) {
@@ -572,6 +609,7 @@ export function updateTracklist(tracklist, trackIntersectionObserver) {
     const isRecommendation = track.closest('[data-testid="recommended-track"]') !== null;
     if (isRecommendation && !CONFIG.isRecommendationsEnabled) continue;
 
+    fixSeparateCellPosition(track, false);
     const hasdjinfo = track.querySelector('.djinfo') !== null;
     // Spotify reuses row nodes while virtual-scrolling: detect a row that now shows another track
     const currentUri = hasdjinfo ? getRowTrackUri(track) : null;

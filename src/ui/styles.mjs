@@ -69,6 +69,11 @@ export function initStyles() {
       cursor: col-resize !important;
       user-select: none !important;
     }
+    /* Fallback line in case Spotify's own separator class does not match: zero-specificity
+       selector, so Spotify's rule wins whenever it applies. */
+    :where([role='row']:hover, [role='row']:focus-within) .djInfoResizeHandle {
+      background: linear-gradient(#ffffff4d, #ffffff4d) 50% / 1px 100% no-repeat;
+    }
     .djInfoResizeHandle:hover,
     .djInfoResizeHandle:focus-visible {
       background: rgba(255, 255, 255, 0.2);
