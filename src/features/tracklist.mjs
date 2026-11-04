@@ -1,7 +1,7 @@
 import { CONFIG } from '../ui/config.mjs';
 import { trackDb } from '../db/trackDb.mjs';
 import { getRowTrackUri, getKeyInNotation } from '../utils/track.mjs';
-import { GridCoordinator } from '../utils/gridCoordinator.mjs';
+import { GridCoordinator } from '../shared/grid-coordinator/grid-coordinator';
 
 const { isInsideSearchBarDropdown, getAllHeaderRows, getAllTrackRows, getRowInsertionPoint } =
   GridCoordinator;
